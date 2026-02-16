@@ -69,7 +69,7 @@ app.listen(PORT, () => console.log('Backend running on port ' + PORT));
 
 ## **Step 2: .env file check karo**
 
-`backend/.env` mein yeh hona chahiye:
+
 ```
 GROQ_API_KEY=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
 PORT=5000
