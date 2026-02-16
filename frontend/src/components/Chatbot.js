@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 
+const BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'bot', text: 'Namaste! 👋 Main MediRemind AI hun! Koi bhi health ya medicine question puchho! 😊' }
+    { role: 'bot', text: 'Namaste! 👋 Main MediRemind AI hun - tera health ka best dost! Koi bhi sawaal pooch, seedha jawab dunga! 😄💊' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,7 +22,7 @@ function Chatbot() {
     setInput('');
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/ai/chat', {
+      const res = await fetch(BASE + '/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: msg })
@@ -28,7 +30,15 @@ function Chatbot() {
       const data = await res.json();
       setMessages(prev => [...prev, { role: 'bot', text: data.reply }]);
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'bot', text: 'Sorry! Backend se connect nahi ho pa raha. 🙏' }]);
+      const funnyErrors = [
+        'Arre yaar! Main thoda so gaya tha, ab pooch do! 😴 Retry karo!',
+        'Oops! Meri chai thand ho gayi thi! ☕ Ek baar aur try karo!',
+        'Bhai signal weak tha - jaise ghar ke andar network! 📶 Dobara try karo!',
+        'Main gym mein tha health research karne 💪 - ab ready hun! Try again!',
+        'Thodi technical exercise chal rahi thi! 🏃 Ab bilkul fit hun - puchho!'
+      ];
+      const randomError = funnyErrors[Math.floor(Math.random() * funnyErrors.length)];
+      setMessages(prev => [...prev, { role: 'bot', text: randomError }]);
     }
     setLoading(false);
   };
@@ -56,7 +66,6 @@ function Chatbot() {
         }
         .cb-btn:hover { transform: scale(1.1); }
         .cb-btn:active { transform: scale(0.95); }
-
         .cb-dot {
           position: absolute;
           top: 2px; right: 2px;
@@ -66,12 +75,10 @@ function Chatbot() {
           border: 2px solid #030306;
           animation: cbPulse 2s infinite;
         }
-
         @keyframes cbPulse {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.3); }
         }
-
         .cb-window {
           position: fixed;
           bottom: 100px;
@@ -88,12 +95,10 @@ function Chatbot() {
           animation: cbIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
           overflow: hidden;
         }
-
         @keyframes cbIn {
           from { opacity: 0; transform: translateY(20px) scale(0.9); }
           to { opacity: 1; transform: translateY(0) scale(1); }
         }
-
         .cb-header {
           padding: 16px 18px;
           background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(6,182,212,0.1));
@@ -102,13 +107,11 @@ function Chatbot() {
           align-items: center;
           justify-content: space-between;
         }
-
         .cb-header-left {
           display: flex;
           align-items: center;
           gap: 10px;
         }
-
         .cb-avatar {
           width: 36px; height: 36px;
           border-radius: 10px;
@@ -118,14 +121,12 @@ function Chatbot() {
           justify-content: center;
           font-size: 1rem;
         }
-
         .cb-name {
           font-size: 0.88rem;
           font-weight: 700;
           color: #f1f5f9;
           font-family: 'Outfit', sans-serif;
         }
-
         .cb-status {
           font-size: 0.7rem;
           color: #10b981;
@@ -134,13 +135,11 @@ function Chatbot() {
           align-items: center;
           gap: 4px;
         }
-
         .cb-status-dot {
           width: 5px; height: 5px;
           background: #10b981;
           border-radius: 50%;
         }
-
         .cb-close {
           width: 28px; height: 28px;
           background: rgba(255,255,255,0.05);
@@ -154,12 +153,10 @@ function Chatbot() {
           justify-content: center;
           transition: all 0.2s ease;
         }
-
         .cb-close:hover {
           background: rgba(239,68,68,0.1);
           color: #ef4444;
         }
-
         .cb-msgs {
           flex: 1;
           overflow-y: auto;
@@ -168,23 +165,18 @@ function Chatbot() {
           flex-direction: column;
           gap: 10px;
         }
-
         .cb-msgs::-webkit-scrollbar { width: 3px; }
         .cb-msgs::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 999px; }
-
         .cb-msg {
           display: flex;
           gap: 8px;
           animation: msgIn 0.3s ease;
         }
-
         @keyframes msgIn {
           from { opacity: 0; transform: translateY(6px); }
           to { opacity: 1; transform: translateY(0); }
         }
-
         .cb-msg.user { flex-direction: row-reverse; }
-
         .cb-msg-icon {
           width: 26px; height: 26px;
           border-radius: 7px;
@@ -197,7 +189,6 @@ function Chatbot() {
           background: rgba(255,255,255,0.05);
           border: 1px solid rgba(255,255,255,0.07);
         }
-
         .cb-bubble {
           max-width: 78%;
           padding: 9px 13px;
@@ -206,42 +197,35 @@ function Chatbot() {
           line-height: 1.55;
           font-family: 'Outfit', sans-serif;
         }
-
         .cb-msg.bot .cb-bubble {
           background: rgba(255,255,255,0.05);
           border: 1px solid rgba(255,255,255,0.07);
           color: #cbd5e1;
           border-radius: 4px 14px 14px 14px;
         }
-
         .cb-msg.user .cb-bubble {
           background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(6,182,212,0.2));
           border: 1px solid rgba(99,102,241,0.2);
           color: #e2e8f0;
           border-radius: 14px 4px 14px 14px;
         }
-
         .cb-typing {
           display: flex;
           gap: 4px;
           padding: 4px 2px;
         }
-
-        .cb-dot {
+        .cb-typing-dot {
           width: 6px; height: 6px;
           border-radius: 50%;
           animation: typeBounce 1.2s ease-in-out infinite;
         }
-
-        .cb-dot:nth-child(1) { background: #6366f1; animation-delay: 0s; }
-        .cb-dot:nth-child(2) { background: #06b6d4; animation-delay: 0.2s; }
-        .cb-dot:nth-child(3) { background: #10b981; animation-delay: 0.4s; }
-
+        .cb-typing-dot:nth-child(1) { background: #6366f1; animation-delay: 0s; }
+        .cb-typing-dot:nth-child(2) { background: #06b6d4; animation-delay: 0.2s; }
+        .cb-typing-dot:nth-child(3) { background: #10b981; animation-delay: 0.4s; }
         @keyframes typeBounce {
           0%, 100% { transform: translateY(0); opacity: 0.5; }
           50% { transform: translateY(-5px); opacity: 1; }
         }
-
         .cb-chips {
           display: flex;
           flex-wrap: wrap;
@@ -249,7 +233,6 @@ function Chatbot() {
           padding: 8px 14px;
           border-top: 1px solid rgba(255,255,255,0.04);
         }
-
         .cb-chip {
           padding: 4px 11px;
           background: rgba(99,102,241,0.08);
@@ -261,12 +244,10 @@ function Chatbot() {
           font-family: 'Outfit', sans-serif;
           transition: all 0.2s ease;
         }
-
         .cb-chip:hover {
           background: rgba(99,102,241,0.15);
           transform: translateY(-1px);
         }
-
         .cb-input-row {
           padding: 10px 14px;
           border-top: 1px solid rgba(255,255,255,0.06);
@@ -274,7 +255,6 @@ function Chatbot() {
           gap: 8px;
           background: rgba(0,0,0,0.2);
         }
-
         .cb-input {
           flex: 1;
           background: rgba(255,255,255,0.04);
@@ -287,14 +267,11 @@ function Chatbot() {
           outline: none;
           transition: all 0.2s ease;
         }
-
         .cb-input::placeholder { color: #334155; }
-
         .cb-input:focus {
           border-color: rgba(99,102,241,0.4);
           box-shadow: 0 0 0 3px rgba(99,102,241,0.08);
         }
-
         .cb-send {
           width: 36px; height: 36px;
           background: linear-gradient(135deg, #6366f1, #06b6d4);
@@ -309,7 +286,6 @@ function Chatbot() {
           justify-content: center;
           box-shadow: 0 0 12px rgba(99,102,241,0.3);
         }
-
         .cb-send:hover { transform: scale(1.08); }
         .cb-send:active { transform: scale(0.93); }
         .cb-send:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -329,7 +305,7 @@ function Chatbot() {
                 <div className="cb-name">MediRemind AI</div>
                 <div className="cb-status">
                   <span className="cb-status-dot"></span>
-                  Online
+                  Online - Hamesha Ready! 😄
                 </div>
               </div>
             </div>
@@ -338,7 +314,7 @@ function Chatbot() {
 
           <div className="cb-msgs">
             {messages.map((msg, i) => (
-              <div key={i} className={`cb-msg ${msg.role}`}>
+              <div key={i} className={'cb-msg ' + msg.role}>
                 <div className="cb-msg-icon">
                   {msg.role === 'bot' ? '🤖' : '👤'}
                 </div>
@@ -350,9 +326,9 @@ function Chatbot() {
                 <div className="cb-msg-icon">🤖</div>
                 <div className="cb-bubble">
                   <div className="cb-typing">
-                    <div className="cb-dot"></div>
-                    <div className="cb-dot"></div>
-                    <div className="cb-dot"></div>
+                    <div className="cb-typing-dot"></div>
+                    <div className="cb-typing-dot"></div>
+                    <div className="cb-typing-dot"></div>
                   </div>
                 </div>
               </div>
@@ -370,7 +346,7 @@ function Chatbot() {
             <input
               className="cb-input"
               type="text"
-              placeholder="Health question puchho..."
+              placeholder="Kuch bhi pooch yaar! 😄"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && sendMessage()}

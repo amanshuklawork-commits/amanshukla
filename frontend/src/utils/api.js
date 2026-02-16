@@ -1,10 +1,19 @@
-import axios from 'axios';
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-const API = axios.create({
-  baseURL: 'http://localhost:5000/api'
-});
+export const getMedicines = () => fetch(BASE_URL + '/api/medicines').then(r => r.json()).then(data => ({ data }));
 
-export const getMedicines = () => API.get('/medicines');
-export const addMedicine = (data) => API.post('/medicines', data);
-export const deleteMedicine = (id) => API.delete(`/medicines/${id}`);
-export const getHealthTip = (medicine) => API.post('/ai/health-tip', { medicine });
+export const addMedicine = (medicine) => fetch(BASE_URL + '/api/medicines', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(medicine)
+}).then(r => r.json());
+
+export const deleteMedicine = (id) => fetch(BASE_URL + '/api/medicines/' + id, {
+  method: 'DELETE'
+}).then(r => r.json());
+
+export const getHealthTip = (medicine) => fetch(BASE_URL + '/api/ai/health-tip', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ medicine })
+}).then(r => r.json());
