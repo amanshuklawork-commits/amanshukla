@@ -50,14 +50,14 @@ app.post('/api/ai/chat', async (req, res) => {
   try {
     const completion = await groq.chat.completions.create({
       messages: [
-        { role: 'system', content: `You are MediRemind AI, a friendly health assistant. Answer in Hinglish (mix of Hindi and English). Keep answers short (2-3 lines max), friendly and helpful.` },
+        { role: 'system', content: `You are MediRemind AI, a friendly health assistant. Answer in Hinglish. Keep answers short and helpful.` },
         { role: 'user', content: req.body.message }
       ],
       model: 'llama-3.3-70b-versatile',
     });
     res.json({ reply: completion.choices[0].message.content });
   } catch (err) {
-    res.json({ reply: 'Sorry! Thodi der baad try karo! 🙏' });
+    res.json({ reply: 'Sorry! Dobara try karo! 🙏' });
   }
 });
 
@@ -67,20 +67,9 @@ app.listen(PORT, () => console.log('Backend running on port ' + PORT));
 
 ---
 
-## **File 2: backend/.env**
-### Ctrl + A → Delete → Paste → Ctrl + S
+## **Step 2: .env file check karo**
+
+`backend/.env` mein yeh hona chahiye:
 ```
 GROQ_API_KEY=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
 PORT=5000
-```
-
----
-
-## **File 3: .gitignore**
-### Kahan: `C:\Users\dell\Desktop\MediRemind-AI\.gitignore`
-### Ctrl + A → Delete → Paste → Ctrl + S
-```
-node_modules
-.env
-backend/.env
-*.env
