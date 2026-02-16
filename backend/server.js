@@ -4,13 +4,20 @@ const cors = require('cors');
 const Groq = require('groq-sdk');
 
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 let medicines = [];
 let idCounter = 1;
+let conversationHistory = [];
 
 app.get('/api/medicines', function(req, res) {
   res.json(medicines);
@@ -37,29 +44,41 @@ app.delete('/api/medicines/:id', function(req, res) {
 app.post('/api/ai/health-tip', async function(req, res) {
   try {
     const completion = await groq.chat.completions.create({
-      messages: [{ role: 'user', content: 'Give a brief health tip for someone taking ' + req.body.medicine + '. Keep it under 3 sentences.' }],
+      messages: [{ role: 'user', content: 'Give a brief health tip for someone taking ' + req.body.medicine + '. Keep it under 3 sentences. Be friendly.' }],
       model: 'llama-3.3-70b-versatile'
     });
     res.json({ tip: completion.choices[0].message.content });
   } catch (err) {
-    res.json({ tip: 'Take medicine as prescribed by your doctor. Stay hydrated!' });
+    res.json({ tip: 'Yeh medicine bilkul sahi time pe lena! Paani khub peeyo! 💊' });
   }
 });
 
 app.post('/api/ai/chat', async function(req, res) {
   try {
+    var userMessage = req.body.message;
+    conversationHistory.push({ role: 'user', content: userMessage });
+    if (conversationHistory.length > 20) {
+      conversationHistory = conversationHistory.slice(-20);
+    }
+    var messages = [
+      { role: 'system', content: 'Tum MediRemind AI ho - ek funny aur caring health assistant! Hinglish mein baat karo. Thoda humor rakho lekin health advice serious do. Hamesha positive aur encouraging raho! Jaise ek best friend jo doctor bhi ho!' }
+    ];
+    conversationHistory.forEach(function(msg) { messages.push(msg); });
     const completion = await groq.chat.completions.create({
-      messages: [
-        { role: 'system', content: 'You are MediRemind AI, a friendly health assistant. Answer in Hinglish. Keep answers short and helpful.' },
-        { role: 'user', content: req.body.message }
-      ],
+      messages: messages,
       model: 'llama-3.3-70b-versatile'
     });
-    res.json({ reply: completion.choices[0].message.content });
+    var reply = completion.choices[0].message.content;
+    conversationHistory.push({ role: 'assistant', content: reply });
+    res.json({ reply: reply });
   } catch (err) {
-    res.json({ reply: 'Sorry! Dobara try karo!' });
+    res.json({ reply: 'Yaar thodi der mein wapas aata hun! Abhi busy hun health tips dhundne mein! 😄 Retry karo!' });
   }
 });
 
+app.get('/', function(req, res) {
+  res.json({ status: 'MediRemind Backend Live hai bhai! 🚀' });
+});
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, function() { console.log('Backend running on port ' + PORT); });
+app.listen(PORT, function() { console.log('Backend chal pada! Port: ' + PORT); });
