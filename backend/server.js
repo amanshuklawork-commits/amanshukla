@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const Groq = require('groq-sdk');
@@ -6,12 +7,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const groq = new Groq({ apiKey: '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' });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 let medicines = [];
 let idCounter = 1;
 
-// ✅ Medicine Routes
 app.get('/api/medicines', (req, res) => {
   res.json(medicines);
 });
@@ -34,52 +34,53 @@ app.delete('/api/medicines/:id', (req, res) => {
   res.json({ message: 'Deleted' });
 });
 
-// ✅ AI Health Tip Route
 app.post('/api/ai/health-tip', async (req, res) => {
   try {
     const completion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: 'user',
-          content: `Give a brief health tip for someone taking ${req.body.medicine}. Keep it under 3 sentences.`
-        }
-      ],
+      messages: [{ role: 'user', content: `Give a brief health tip for someone taking ${req.body.medicine}. Keep it under 3 sentences.` }],
       model: 'llama-3.3-70b-versatile',
     });
-    const tip = completion.choices[0].message.content;
-    res.json({ tip });
+    res.json({ tip: completion.choices[0].message.content });
   } catch (err) {
-    console.error('Health tip error:', err.message);
     res.json({ tip: 'Take medicine as prescribed by your doctor. Stay hydrated!' });
   }
 });
 
-// ✅ AI Chatbot Route
 app.post('/api/ai/chat', async (req, res) => {
   try {
     const completion = await groq.chat.completions.create({
       messages: [
-        {
-          role: 'system',
-          content: `You are MediRemind AI, a friendly health assistant.
-Answer in Hinglish (mix of Hindi and English).
-Keep answers short (2-3 lines max), friendly and helpful.
-Only answer health and medicine related questions.`
-        },
-        {
-          role: 'user',
-          content: req.body.message
-        }
+        { role: 'system', content: `You are MediRemind AI, a friendly health assistant. Answer in Hinglish (mix of Hindi and English). Keep answers short (2-3 lines max), friendly and helpful.` },
+        { role: 'user', content: req.body.message }
       ],
       model: 'llama-3.3-70b-versatile',
     });
-    const reply = completion.choices[0].message.content;
-    res.json({ reply });
+    res.json({ reply: completion.choices[0].message.content });
   } catch (err) {
-    console.error('Chat error:', err.message);
-    res.json({ reply: 'Sorry! Kuch issue aa gaya. Dobara try karo! 🙏' });
+    res.json({ reply: 'Sorry! Thodi der baad try karo! 🙏' });
   }
 });
 
-const PORT = 5000;
-app.listen(PORT, () => console.log('✅ Backend running on port 5000'));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log('Backend running on port ' + PORT));
+```
+
+---
+
+## **File 2: backend/.env**
+### Ctrl + A → Delete → Paste → Ctrl + S
+```
+GROQ_API_KEY=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
+PORT=5000
+```
+
+---
+
+## **File 3: .gitignore**
+### Kahan: `C:\Users\dell\Desktop\MediRemind-AI\.gitignore`
+### Ctrl + A → Delete → Paste → Ctrl + S
+```
+node_modules
+.env
+backend/.env
+*.env
