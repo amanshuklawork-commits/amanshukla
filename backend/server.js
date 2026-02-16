@@ -1,29 +1,47 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const Groq = require('groq-sdk');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const Groq = require("groq-sdk");
 
 const app = express();
 
+/* =======================
+   ✅ CORS FIX (IMPORTANT)
+   ======================= */
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: [
+    "http://localhost:3000",
+    "https://amanshukla-ashy.vercel.app"
+  ],
+  methods: ["GET", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+app.options("*", cors()); // 🔥 preflight fix
 app.use(express.json());
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+/* =======================
+   AI CONFIG
+   ======================= */
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY
+});
 
+/* =======================
+   IN-MEMORY DATA
+   ======================= */
 let medicines = [];
 let idCounter = 1;
 let conversationHistory = [];
 
-app.get('/api/medicines', function(req, res) {
+/* =======================
+   MEDICINE ROUTES
+   ======================= */
+app.get("/api/medicines", (req, res) => {
   res.json(medicines);
 });
 
-app.post('/api/medicines', function(req, res) {
+app.post("/api/medicines", (req, res) => {
   const medicine = {
     _id: idCounter++,
     name: req.body.name,
@@ -36,49 +54,83 @@ app.post('/api/medicines', function(req, res) {
   res.status(201).json(medicine);
 });
 
-app.delete('/api/medicines/:id', function(req, res) {
-  medicines = medicines.filter(function(m) { return m._id != req.params.id; });
-  res.json({ message: 'Deleted' });
+app.delete("/api/medicines/:id", (req, res) => {
+  medicines = medicines.filter(m => m._id != req.params.id);
+  res.json({ message: "Deleted" });
 });
 
-app.post('/api/ai/health-tip', async function(req, res) {
+/* =======================
+   AI HEALTH TIP
+   ======================= */
+app.post("/api/ai/health-tip", async (req, res) => {
   try {
     const completion = await groq.chat.completions.create({
-      messages: [{ role: 'user', content: 'Give a brief health tip for someone taking ' + req.body.medicine + '. Keep it under 3 sentences. Be friendly.' }],
-      model: 'llama-3.3-70b-versatile'
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "user",
+          content: `Give a brief health tip for someone taking ${req.body.medicine}. Keep it under 3 sentences.`
+        }
+      ]
     });
+
     res.json({ tip: completion.choices[0].message.content });
   } catch (err) {
-    res.json({ tip: 'Yeh medicine bilkul sahi time pe lena! Paani khub peeyo! 💊' });
+    res.json({
+      tip: "Yeh medicine sahi time pe lena aur paani zyada peena! 💊💧"
+    });
   }
 });
 
-app.post('/api/ai/chat', async function(req, res) {
+/* =======================
+   AI CHAT
+   ======================= */
+app.post("/api/ai/chat", async (req, res) => {
   try {
-    var userMessage = req.body.message;
-    conversationHistory.push({ role: 'user', content: userMessage });
+    const userMessage = req.body.message;
+
+    conversationHistory.push({ role: "user", content: userMessage });
     if (conversationHistory.length > 20) {
       conversationHistory = conversationHistory.slice(-20);
     }
-    var messages = [
-      { role: 'system', content: 'Tum MediRemind AI ho - ek funny aur caring health assistant! Hinglish mein baat karo. Thoda humor rakho lekin health advice serious do. Hamesha positive aur encouraging raho! Jaise ek best friend jo doctor bhi ho!' }
+
+    const messages = [
+      {
+        role: "system",
+        content:
+          "Tum MediRemind AI ho — ek friendly, caring aur funny health assistant. Hinglish me baat karo. Health advice serious rakho, tone best friend jaisa ho."
+      },
+      ...conversationHistory
     ];
-    conversationHistory.forEach(function(msg) { messages.push(msg); });
+
     const completion = await groq.chat.completions.create({
-      messages: messages,
-      model: 'llama-3.3-70b-versatile'
+      model: "llama-3.3-70b-versatile",
+      messages
     });
-    var reply = completion.choices[0].message.content;
-    conversationHistory.push({ role: 'assistant', content: reply });
-    res.json({ reply: reply });
+
+    const reply = completion.choices[0].message.content;
+    conversationHistory.push({ role: "assistant", content: reply });
+
+    res.json({ reply });
   } catch (err) {
-    res.json({ reply: 'Yaar thodi der mein wapas aata hun! Abhi busy hun health tips dhundne mein! 😄 Retry karo!' });
+    res.json({
+      reply:
+        "Thoda sa busy ho gaya tha yaar 😅 Ab ready hoon, dobara pooch!"
+    });
   }
 });
 
-app.get('/', function(req, res) {
-  res.json({ status: 'MediRemind Backend Live hai bhai! 🚀' });
+/* =======================
+   HEALTH CHECK
+   ======================= */
+app.get("/", (req, res) => {
+  res.json({ status: "MediRemind Backend Live 🚀" });
 });
 
+/* =======================
+   SERVER START
+   ======================= */
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, function() { console.log('Backend chal pada! Port: ' + PORT); });
+app.listen(PORT, () =>
+  console.log("Backend chal pada 🚀 Port:", PORT)
+);
