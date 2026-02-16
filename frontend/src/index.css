@@ -1,0 +1,34 @@
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  background: #030306 !important;
+}
+
+body {
+  background: #030306 !important;
+  color: #f1f5f9;
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  background: #030306 !important;
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #030306; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #6366f1, #06b6d4);
+  border-radius: 999px;
+}
+
+::selection {
+  background: rgba(99,102,241,0.3);
+  color: #f1f5f9;
+}
