@@ -1,5 +1,27 @@
-import React, { useState } from 'react';
-import { addMedicine } from '../utils/api';
+import React, { useState, useEffect } from 'react';
+
+const BASE = process.env.REACT_APP_API_URL || 'https://amanshukla.onrender.com';
+
+const scheduleNotification = (name, dosage, times) => {
+  if (Notification.permission !== 'granted') return;
+  times.forEach(function(time) {
+    var parts = time.trim().split(':');
+    var hours = parseInt(parts[0]);
+    var minutes = parseInt(parts[1]);
+    if (isNaN(hours) || isNaN(minutes)) return;
+    var now = new Date();
+    var notifTime = new Date();
+    notifTime.setHours(hours, minutes, 0, 0);
+    if (notifTime <= now) notifTime.setDate(notifTime.getDate() + 1);
+    var delay = notifTime.getTime() - now.getTime();
+    setTimeout(function() {
+      new Notification('MediRemind - Dawai ka time!', {
+        body: name + ' - ' + dosage + ' lene ka time ho gaya!',
+        icon: '/favicon.ico'
+      });
+    }, delay);
+  });
+};
 
 const styles = `
   .add-wrap {
@@ -15,7 +37,6 @@ const styles = `
     .add-right { display: none; }
   }
 
-  /* Left Side - Form */
   .add-left {
     padding: 48px 40px;
     display: flex;
@@ -58,11 +79,46 @@ const styles = `
   .add-subtitle {
     color: #475569;
     font-size: 0.9rem;
-    margin-bottom: 36px;
+    margin-bottom: 16px;
     animation: fadeUp 0.5s ease 0.2s both;
   }
 
-  /* Form */
+  .notif-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    margin-bottom: 20px;
+    animation: fadeUp 0.5s ease 0.22s both;
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .notif-banner.granted {
+    background: rgba(16,185,129,0.08);
+    border: 1px solid rgba(16,185,129,0.2);
+    color: #10b981;
+  }
+
+  .notif-banner.denied {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+    color: #ef4444;
+  }
+
+  .notif-banner.default {
+    background: rgba(99,102,241,0.08);
+    border: 1px solid rgba(99,102,241,0.2);
+    color: #818cf8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .notif-banner.default:hover {
+    background: rgba(99,102,241,0.15);
+  }
+
   .med-form {
     display: flex;
     flex-direction: column;
@@ -109,19 +165,9 @@ const styles = `
     box-shadow: 0 0 0 4px rgba(99,102,241,0.08), 0 0 20px rgba(99,102,241,0.1);
   }
 
-  .field-hint {
-    font-size: 0.73rem;
-    color: #334155;
-    padding-left: 2px;
-  }
+  .field-hint { font-size: 0.73rem; color: #334155; padding-left: 2px; }
 
-  /* Frequency Quick Select */
-  .freq-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 4px;
-  }
+  .freq-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 
   .freq-chip {
     padding: 6px 14px;
@@ -151,7 +197,6 @@ const styles = `
 
   .freq-chip:active { transform: scale(0.95); }
 
-  /* Submit */
   .submit-wrap { margin-top: 8px; }
 
   .submit-btn {
@@ -186,19 +231,9 @@ const styles = `
   }
 
   .submit-btn:hover::before { left: 100%; }
-
-  .submit-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 0 50px rgba(99,102,241,0.55), 0 0 80px rgba(6,182,212,0.2);
-  }
-
+  .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 0 50px rgba(99,102,241,0.55); }
   .submit-btn:active { transform: scale(0.97); }
-
-  .submit-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none !important;
-  }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
 
   .spinner {
     width: 18px; height: 18px;
@@ -211,7 +246,6 @@ const styles = `
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Right Side - Visual */
   .add-right {
     padding: 48px 40px;
     display: flex;
@@ -239,14 +273,7 @@ const styles = `
     transform: translateY(-3px);
   }
 
-  .preview-label {
-    font-size: 0.72rem;
-    color: #334155;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 16px;
-    font-weight: 700;
-  }
+  .preview-label { font-size: 0.72rem; color: #334155; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; font-weight: 700; }
 
   .preview-name {
     font-size: 1.4rem;
@@ -259,11 +286,7 @@ const styles = `
     -webkit-text-fill-color: transparent;
   }
 
-  .preview-rows {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+  .preview-rows { display: flex; flex-direction: column; gap: 10px; }
 
   .preview-row {
     display: flex;
@@ -280,21 +303,9 @@ const styles = `
 
   .preview-row strong { color: #94a3b8; }
 
-  /* Tips Section */
-  .tips-section {
-    width: 100%;
-    max-width: 320px;
-    animation: fadeUp 0.5s ease 0.4s both;
-  }
+  .tips-section { width: 100%; max-width: 320px; animation: fadeUp 0.5s ease 0.4s both; }
 
-  .tips-title {
-    font-size: 0.78rem;
-    color: #334155;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 700;
-    margin-bottom: 12px;
-  }
+  .tips-title { font-size: 0.78rem; color: #334155; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 12px; }
 
   .tip-item {
     display: flex;
@@ -311,14 +322,9 @@ const styles = `
     line-height: 1.5;
   }
 
-  .tip-item:hover {
-    background: rgba(255,255,255,0.04);
-    color: #94a3b8;
-  }
-
+  .tip-item:hover { background: rgba(255,255,255,0.04); color: #94a3b8; }
   .tip-item .tip-icon { font-size: 1rem; flex-shrink: 0; }
 
-  /* Success Toast */
   .toast {
     position: fixed;
     bottom: 28px;
@@ -357,22 +363,39 @@ function AddMedicine() {
   const [form, setForm] = useState({ name: '', dosage: '', frequency: '', time: '' });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [notifStatus, setNotifStatus] = useState('default');
 
-  const handleFreqChip = (freq) => {
-    setForm(prev => ({ ...prev, frequency: freq }));
+  useEffect(function() {
+    if ('Notification' in window) {
+      setNotifStatus(Notification.permission);
+    }
+  }, []);
+
+  const requestNotification = async function() {
+    if (!('Notification' in window)) return;
+    var permission = await Notification.requestPermission();
+    setNotifStatus(permission);
   };
 
-  const handleSubmit = async (e) => {
+  const handleFreqChip = function(freq) {
+    setForm(function(prev) { return { ...prev, frequency: freq }; });
+  };
+
+  const handleSubmit = async function(e) {
     e.preventDefault();
     setLoading(true);
     try {
-      await addMedicine({
-        ...form,
-        time: form.time.split(',').map(t => t.trim()).filter(Boolean)
+      var times = form.time.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
+      var response = await fetch(BASE + '/api/medicines', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, time: times })
       });
+      if (!response.ok) throw new Error('Failed');
+      scheduleNotification(form.name, form.dosage, times);
       setSuccess(true);
       setForm({ name: '', dosage: '', frequency: '', time: '' });
-      setTimeout(() => setSuccess(false), 3500);
+      setTimeout(function() { setSuccess(false); }, 3500);
     } catch (err) {
       alert('Error adding medicine! Please try again.');
     }
@@ -384,69 +407,86 @@ function AddMedicine() {
       <style>{styles}</style>
       <div className="add-wrap">
 
-        {/* LEFT - Form */}
         <div className="add-left">
-          <div className="add-badge">💊 New Medication</div>
+          <div className="add-badge">New Medication</div>
           <div className="add-title">Add <span>Medicine</span></div>
           <div className="add-subtitle">Track a new medication in your daily schedule</div>
 
+          {notifStatus === 'granted' && (
+            <div className="notif-banner granted">
+              Notifications enabled! Aapko time par reminder milega.
+            </div>
+          )}
+          {notifStatus === 'denied' && (
+            <div className="notif-banner denied">
+              Notifications blocked hain. Browser settings se enable karo.
+            </div>
+          )}
+          {notifStatus === 'default' && (
+            <div className="notif-banner default" onClick={requestNotification}>
+              Click here to enable medicine reminders!
+            </div>
+          )}
+
           <form className="med-form" onSubmit={handleSubmit}>
             <div className="field-wrap">
-              <label className="field-label">🏷️ Medicine Name</label>
+              <label className="field-label">Medicine Name</label>
               <input
                 className="field-input"
                 type="text"
-                placeholder="e.g. Paracetamol, Vitamin D, Metformin..."
+                placeholder="e.g. Paracetamol, Vitamin D..."
                 value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                onChange={function(e) { setForm({ ...form, name: e.target.value }); }}
                 required
               />
             </div>
 
             <div className="field-wrap">
-              <label className="field-label">💉 Dosage</label>
+              <label className="field-label">Dosage</label>
               <input
                 className="field-input"
                 type="text"
                 placeholder="e.g. 500mg, 1 tablet, 10ml..."
                 value={form.dosage}
-                onChange={(e) => setForm({ ...form, dosage: e.target.value })}
+                onChange={function(e) { setForm({ ...form, dosage: e.target.value }); }}
                 required
               />
             </div>
 
             <div className="field-wrap">
-              <label className="field-label">🔁 Frequency</label>
+              <label className="field-label">Frequency</label>
               <input
                 className="field-input"
                 type="text"
                 placeholder="e.g. 2 times daily..."
                 value={form.frequency}
-                onChange={(e) => setForm({ ...form, frequency: e.target.value })}
+                onChange={function(e) { setForm({ ...form, frequency: e.target.value }); }}
                 required
               />
               <div className="freq-chips">
-                {FREQUENCIES.map((f) => (
-                  <button
-                    key={f}
-                    type="button"
-                    className={`freq-chip ${form.frequency === f ? 'selected' : ''}`}
-                    onClick={() => handleFreqChip(f)}
-                  >
-                    {f}
-                  </button>
-                ))}
+                {FREQUENCIES.map(function(f) {
+                  return (
+                    <button
+                      key={f}
+                      type="button"
+                      className={'freq-chip ' + (form.frequency === f ? 'selected' : '')}
+                      onClick={function() { handleFreqChip(f); }}
+                    >
+                      {f}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             <div className="field-wrap">
-              <label className="field-label">⏰ Reminder Times</label>
+              <label className="field-label">Reminder Times</label>
               <input
                 className="field-input"
                 type="text"
                 placeholder="e.g. 08:00, 14:00, 20:00"
                 value={form.time}
-                onChange={(e) => setForm({ ...form, time: e.target.value })}
+                onChange={function(e) { setForm({ ...form, time: e.target.value }); }}
                 required
               />
               <span className="field-hint">Separate multiple times with commas</span>
@@ -456,35 +496,32 @@ function AddMedicine() {
               <button type="submit" className="submit-btn" disabled={loading}>
                 {loading
                   ? <><span className="spinner"></span> Adding Medicine...</>
-                  : <>➕ Add Medicine</>
+                  : <>Add Medicine</>
                 }
               </button>
             </div>
           </form>
         </div>
 
-        {/* RIGHT - Preview */}
         <div className="add-right">
           <div className="preview-card">
-            <div className="preview-label">📋 Live Preview</div>
-            <div className="preview-name">
-              {form.name || 'Medicine Name'}
-            </div>
+            <div className="preview-label">Live Preview</div>
+            <div className="preview-name">{form.name || 'Medicine Name'}</div>
             <div className="preview-rows">
               <div className="preview-row">
-                💉 <strong>Dosage:</strong> {form.dosage || '—'}
+                <strong>Dosage:</strong> {form.dosage || '-'}
               </div>
               <div className="preview-row">
-                🔁 <strong>Frequency:</strong> {form.frequency || '—'}
+                <strong>Frequency:</strong> {form.frequency || '-'}
               </div>
               <div className="preview-row">
-                ⏰ <strong>Times:</strong> {form.time || '—'}
+                <strong>Times:</strong> {form.time || '-'}
               </div>
             </div>
           </div>
 
           <div className="tips-section">
-            <div className="tips-title">💡 Pro Tips</div>
+            <div className="tips-title">Pro Tips</div>
             <div className="tip-item">
               <span className="tip-icon">⏰</span>
               Set reminders at consistent times every day for best results
@@ -507,7 +544,7 @@ function AddMedicine() {
 
       {success && (
         <div className="toast">
-          ✅ Medicine added successfully!
+          Medicine added! Reminder set ho gaya!
         </div>
       )}
     </>
