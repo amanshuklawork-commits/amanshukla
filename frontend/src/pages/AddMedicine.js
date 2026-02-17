@@ -1,26 +1,31 @@
 import React, { useState, useEffect } from 'react';
 
 const BASE = process.env.REACT_APP_API_URL || 'https://amanshukla.onrender.com';
+const EMAILJS_SERVICE = 'service_acccr0a';
+const EMAILJS_TEMPLATE = 'template_5rvdrdz';
+const EMAILJS_KEY = 'OnaP9UdEqIAgSN4Tf';
 
-const scheduleNotification = (name, dosage, times) => {
-  if (Notification.permission !== 'granted') return;
-  times.forEach(function(time) {
-    var parts = time.trim().split(':');
-    var hours = parseInt(parts[0]);
-    var minutes = parseInt(parts[1]);
-    if (isNaN(hours) || isNaN(minutes)) return;
-    var now = new Date();
-    var notifTime = new Date();
-    notifTime.setHours(hours, minutes, 0, 0);
-    if (notifTime <= now) notifTime.setDate(notifTime.getDate() + 1);
-    var delay = notifTime.getTime() - now.getTime();
-    setTimeout(function() {
-      new Notification('MediRemind - Dawai ka time!', {
-        body: name + ' - ' + dosage + ' lene ka time ho gaya!',
-        icon: '/favicon.ico'
-      });
-    }, delay);
-  });
+const sendReminderEmail = async (toEmail, medicineName, dosage, reminderTime) => {
+  try {
+    var response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        service_id: EMAILJS_SERVICE,
+        template_id: EMAILJS_TEMPLATE,
+        user_id: EMAILJS_KEY,
+        template_params: {
+          to_email: toEmail,
+          medicine_name: medicineName,
+          dosage: dosage,
+          reminder_time: reminderTime
+        }
+      })
+    });
+    return response.ok;
+  } catch (err) {
+    return false;
+  }
 };
 
 const styles = `
@@ -79,44 +84,8 @@ const styles = `
   .add-subtitle {
     color: #475569;
     font-size: 0.9rem;
-    margin-bottom: 16px;
+    margin-bottom: 36px;
     animation: fadeUp 0.5s ease 0.2s both;
-  }
-
-  .notif-banner {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    border-radius: 12px;
-    font-size: 0.82rem;
-    margin-bottom: 20px;
-    animation: fadeUp 0.5s ease 0.22s both;
-    font-family: 'Outfit', sans-serif;
-  }
-
-  .notif-banner.granted {
-    background: rgba(16,185,129,0.08);
-    border: 1px solid rgba(16,185,129,0.2);
-    color: #10b981;
-  }
-
-  .notif-banner.denied {
-    background: rgba(239,68,68,0.08);
-    border: 1px solid rgba(239,68,68,0.2);
-    color: #ef4444;
-  }
-
-  .notif-banner.default {
-    background: rgba(99,102,241,0.08);
-    border: 1px solid rgba(99,102,241,0.2);
-    color: #818cf8;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .notif-banner.default:hover {
-    background: rgba(99,102,241,0.15);
   }
 
   .med-form {
@@ -195,8 +164,6 @@ const styles = `
     color: #818cf8;
   }
 
-  .freq-chip:active { transform: scale(0.95); }
-
   .submit-wrap { margin-top: 8px; }
 
   .submit-btn {
@@ -218,19 +185,8 @@ const styles = `
     align-items: center;
     justify-content: center;
     gap: 10px;
-    letter-spacing: 0.3px;
   }
 
-  .submit-btn::before {
-    content: '';
-    position: absolute;
-    top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-    transition: left 0.6s ease;
-  }
-
-  .submit-btn:hover::before { left: 100%; }
   .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 0 50px rgba(99,102,241,0.55); }
   .submit-btn:active { transform: scale(0.97); }
   .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
@@ -278,7 +234,6 @@ const styles = `
   .preview-name {
     font-size: 1.4rem;
     font-weight: 800;
-    color: #f1f5f9;
     margin-bottom: 12px;
     min-height: 32px;
     background: linear-gradient(135deg, #6366f1, #06b6d4);
@@ -304,7 +259,6 @@ const styles = `
   .preview-row strong { color: #94a3b8; }
 
   .tips-section { width: 100%; max-width: 320px; animation: fadeUp 0.5s ease 0.4s both; }
-
   .tips-title { font-size: 0.78rem; color: #334155; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 12px; }
 
   .tip-item {
@@ -318,11 +272,9 @@ const styles = `
     margin-bottom: 8px;
     background: rgba(255,255,255,0.02);
     border: 1px solid rgba(255,255,255,0.04);
-    transition: all 0.2s ease;
     line-height: 1.5;
   }
 
-  .tip-item:hover { background: rgba(255,255,255,0.04); color: #94a3b8; }
   .tip-item .tip-icon { font-size: 1rem; flex-shrink: 0; }
 
   .toast {
@@ -360,22 +312,9 @@ const FREQUENCIES = [
 ];
 
 function AddMedicine() {
-  const [form, setForm] = useState({ name: '', dosage: '', frequency: '', time: '' });
+  const [form, setForm] = useState({ name: '', dosage: '', frequency: '', time: '', email: '' });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [notifStatus, setNotifStatus] = useState('default');
-
-  useEffect(function() {
-    if ('Notification' in window) {
-      setNotifStatus(Notification.permission);
-    }
-  }, []);
-
-  const requestNotification = async function() {
-    if (!('Notification' in window)) return;
-    var permission = await Notification.requestPermission();
-    setNotifStatus(permission);
-  };
 
   const handleFreqChip = function(freq) {
     setForm(function(prev) { return { ...prev, frequency: freq }; });
@@ -389,12 +328,16 @@ function AddMedicine() {
       var response = await fetch(BASE + '/api/medicines', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, time: times })
+        body: JSON.stringify({ name: form.name, dosage: form.dosage, frequency: form.frequency, time: times })
       });
       if (!response.ok) throw new Error('Failed');
-      scheduleNotification(form.name, form.dosage, times);
+
+      if (form.email) {
+        await sendReminderEmail(form.email, form.name, form.dosage, form.time);
+      }
+
       setSuccess(true);
-      setForm({ name: '', dosage: '', frequency: '', time: '' });
+      setForm({ name: '', dosage: '', frequency: '', time: '', email: '' });
       setTimeout(function() { setSuccess(false); }, 3500);
     } catch (err) {
       alert('Error adding medicine! Please try again.');
@@ -406,72 +349,34 @@ function AddMedicine() {
     <>
       <style>{styles}</style>
       <div className="add-wrap">
-
         <div className="add-left">
           <div className="add-badge">New Medication</div>
           <div className="add-title">Add <span>Medicine</span></div>
           <div className="add-subtitle">Track a new medication in your daily schedule</div>
 
-          {notifStatus === 'granted' && (
-            <div className="notif-banner granted">
-              Notifications enabled! Aapko time par reminder milega.
-            </div>
-          )}
-          {notifStatus === 'denied' && (
-            <div className="notif-banner denied">
-              Notifications blocked hain. Browser settings se enable karo.
-            </div>
-          )}
-          {notifStatus === 'default' && (
-            <div className="notif-banner default" onClick={requestNotification}>
-              Click here to enable medicine reminders!
-            </div>
-          )}
-
           <form className="med-form" onSubmit={handleSubmit}>
             <div className="field-wrap">
               <label className="field-label">Medicine Name</label>
-              <input
-                className="field-input"
-                type="text"
-                placeholder="e.g. Paracetamol, Vitamin D..."
-                value={form.name}
-                onChange={function(e) { setForm({ ...form, name: e.target.value }); }}
-                required
-              />
+              <input className="field-input" type="text" placeholder="e.g. Paracetamol, Vitamin D..."
+                value={form.name} onChange={function(e) { setForm({ ...form, name: e.target.value }); }} required />
             </div>
 
             <div className="field-wrap">
               <label className="field-label">Dosage</label>
-              <input
-                className="field-input"
-                type="text"
-                placeholder="e.g. 500mg, 1 tablet, 10ml..."
-                value={form.dosage}
-                onChange={function(e) { setForm({ ...form, dosage: e.target.value }); }}
-                required
-              />
+              <input className="field-input" type="text" placeholder="e.g. 500mg, 1 tablet..."
+                value={form.dosage} onChange={function(e) { setForm({ ...form, dosage: e.target.value }); }} required />
             </div>
 
             <div className="field-wrap">
               <label className="field-label">Frequency</label>
-              <input
-                className="field-input"
-                type="text"
-                placeholder="e.g. 2 times daily..."
-                value={form.frequency}
-                onChange={function(e) { setForm({ ...form, frequency: e.target.value }); }}
-                required
-              />
+              <input className="field-input" type="text" placeholder="e.g. 2 times daily..."
+                value={form.frequency} onChange={function(e) { setForm({ ...form, frequency: e.target.value }); }} required />
               <div className="freq-chips">
                 {FREQUENCIES.map(function(f) {
                   return (
-                    <button
-                      key={f}
-                      type="button"
+                    <button key={f} type="button"
                       className={'freq-chip ' + (form.frequency === f ? 'selected' : '')}
-                      onClick={function() { handleFreqChip(f); }}
-                    >
+                      onClick={function() { handleFreqChip(f); }}>
                       {f}
                     </button>
                   );
@@ -481,23 +386,21 @@ function AddMedicine() {
 
             <div className="field-wrap">
               <label className="field-label">Reminder Times</label>
-              <input
-                className="field-input"
-                type="text"
-                placeholder="e.g. 08:00, 14:00, 20:00"
-                value={form.time}
-                onChange={function(e) { setForm({ ...form, time: e.target.value }); }}
-                required
-              />
+              <input className="field-input" type="text" placeholder="e.g. 08:00, 14:00, 20:00"
+                value={form.time} onChange={function(e) { setForm({ ...form, time: e.target.value }); }} required />
               <span className="field-hint">Separate multiple times with commas</span>
+            </div>
+
+            <div className="field-wrap">
+              <label className="field-label">Email for Reminder (Optional)</label>
+              <input className="field-input" type="email" placeholder="aapka@email.com - reminder email aayega!"
+                value={form.email} onChange={function(e) { setForm({ ...form, email: e.target.value }); }} />
+              <span className="field-hint">Email dalo toh medicine add hone par confirmation email aayega!</span>
             </div>
 
             <div className="submit-wrap">
               <button type="submit" className="submit-btn" disabled={loading}>
-                {loading
-                  ? <><span className="spinner"></span> Adding Medicine...</>
-                  : <>Add Medicine</>
-                }
+                {loading ? <><span className="spinner"></span> Adding...</> : <>Add Medicine</>}
               </button>
             </div>
           </form>
@@ -508,44 +411,25 @@ function AddMedicine() {
             <div className="preview-label">Live Preview</div>
             <div className="preview-name">{form.name || 'Medicine Name'}</div>
             <div className="preview-rows">
-              <div className="preview-row">
-                <strong>Dosage:</strong> {form.dosage || '-'}
-              </div>
-              <div className="preview-row">
-                <strong>Frequency:</strong> {form.frequency || '-'}
-              </div>
-              <div className="preview-row">
-                <strong>Times:</strong> {form.time || '-'}
-              </div>
+              <div className="preview-row"><strong>Dosage:</strong> {form.dosage || '-'}</div>
+              <div className="preview-row"><strong>Frequency:</strong> {form.frequency || '-'}</div>
+              <div className="preview-row"><strong>Times:</strong> {form.time || '-'}</div>
+              <div className="preview-row"><strong>Email:</strong> {form.email || '-'}</div>
             </div>
           </div>
 
           <div className="tips-section">
             <div className="tips-title">Pro Tips</div>
-            <div className="tip-item">
-              <span className="tip-icon">⏰</span>
-              Set reminders at consistent times every day for best results
-            </div>
-            <div className="tip-item">
-              <span className="tip-icon">🍽️</span>
-              Note whether medicine should be taken before or after meals
-            </div>
-            <div className="tip-item">
-              <span className="tip-icon">💧</span>
-              Always take medicines with a full glass of water
-            </div>
-            <div className="tip-item">
-              <span className="tip-icon">🤖</span>
-              Use AI Health Tips on Dashboard for personalized advice
-            </div>
+            <div className="tip-item"><span className="tip-icon">📧</span>Email dalo - medicine add hone par reminder email aayega!</div>
+            <div className="tip-item"><span className="tip-icon">⏰</span>Set reminders at consistent times every day</div>
+            <div className="tip-item"><span className="tip-icon">💧</span>Always take medicines with a full glass of water</div>
+            <div className="tip-item"><span className="tip-icon">🤖</span>Use AI Health Tips on Dashboard for advice</div>
           </div>
         </div>
       </div>
 
       {success && (
-        <div className="toast">
-          Medicine added! Reminder set ho gaya!
-        </div>
+        <div className="toast">Medicine added! Email reminder bheja gaya!</div>
       )}
     </>
   );
