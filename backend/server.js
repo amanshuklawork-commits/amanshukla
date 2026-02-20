@@ -1,156 +1,125 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const Groq = require("groq-sdk");
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const Groq = require('groq-sdk');
+
+dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-/* =======================
-   ✅ CORS FIX (IMPORTANT)
-   ======================= */
+// ✅ Proper CORS setup
 app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "https://amanshukla-ashy.vercel.app"
-  ],
-  methods: ["GET", "POST", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  origin: ['https://amanshukla-ashy.vercel.app', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.options("*", cors()); // 🔥 preflight fix
 app.use(express.json());
 
-/* =======================
-   AI CONFIG
-   ======================= */
+// ✅ Root route - check karo backend live hai ya nahi
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'MediRemind Backend Live 🚀',
+    message: 'Server chal raha hai bilkul smooth!',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// ✅ Initialize Groq
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY
 });
 
-/* =======================
-   IN-MEMORY DATA
-   ======================= */
-let medicines = [];
-let idCounter = 1;
-let conversationHistory = [];
-
-/* =======================
-   MEDICINE ROUTES
-   ======================= */
-app.get("/api/medicines", (req, res) => {
-  res.json(medicines);
-});
-
-app.post("/api/medicines", (req, res) => {
-  const medicine = {
-    _id: idCounter++,
-    name: req.body.name,
-    dosage: req.body.dosage,
-    frequency: req.body.frequency,
-    time: req.body.time,
-    createdAt: new Date()
-  };
-  medicines.push(medicine);
-  res.status(201).json(medicine);
-});
-
-app.delete("/api/medicines/:id", (req, res) => {
-  medicines = medicines.filter(m => m._id != req.params.id);
-  res.json({ message: "Deleted" });
-});
-
-/* =======================
-   AI HEALTH TIP
-   ======================= */
-app.post("/api/ai/health-tip", async (req, res) => {
+// ✅ Chatbot API endpoint
+app.post('/api/ai/chat', async (req, res) => {
   try {
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        {
-          role: "user",
-          content: `Give a brief health tip for someone taking ${req.body.medicine}. Keep it under 3 sentences.`
-        }
-      ]
-    });
-
-    res.json({ tip: completion.choices[0].message.content });
-  } catch (err) {
-    res.json({
-      tip: "Yeh medicine sahi time pe lena aur paani zyada peena! 💊💧"
-    });
-  }
-});
-
-/* =======================
-   AI CHAT
-   ======================= */
-app.post("/api/ai/chat", async (req, res) => {
-  try {
-    const userMessage = req.body.message;
-
-    conversationHistory.push({ role: "user", content: userMessage });
-    if (conversationHistory.length > 20) {
-      conversationHistory = conversationHistory.slice(-20);
+    const { message } = req.body;
+    
+    if (!message) {
+      return res.status(400).json({ 
+        error: 'Bhai message toh bhej pehle! 😅' 
+      });
     }
 
-    const messages = [
-      {
-        role: "system",
-        content:
-          "Tum MediRemind AI ho — ek friendly, caring aur funny health assistant. Hinglish me baat karo. Health advice serious rakho, tone best friend jaisa ho."
-      },
-      ...conversationHistory
-    ];
+    console.log('📨 User message:', message);
 
+    // System prompt for Hinglish responses
+    const systemPrompt = `Tu MediRemind AI hai - ek friendly health assistant jo Hinglish mein baat karta hai. 
+    Tera kaam hai logon ki health-related problems ka solution dena simple bhasha mein.
+    Hamesha chhota aur helpful jawab de (max 3 lines). Emojis use kar.`;
+
+    // Call Groq API
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      messages
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: message }
+      ],
+      model: 'llama3-70b-8192',
+      temperature: 0.7,
+      max_tokens: 200
     });
 
-    const reply = completion.choices[0].message.content;
-    conversationHistory.push({ role: "assistant", content: reply });
+    const reply = completion.choices[0]?.message?.content || 'Kuch technical issue aa gaya! Dobara try karo.';
 
-    res.json({ reply });
-  } catch (err) {
-    res.json({
-      reply:
-        "Thoda sa busy ho gaya tha yaar 😅 Ab ready hoon, dobara pooch!"
+    console.log('🤖 Bot reply:', reply);
+
+    res.json({ 
+      reply: reply,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('❌ Groq API Error:', error);
+    
+    // Funny error messages for users
+    const funnyErrors = [
+      'Arre yaar! Main thoda gym jaake aaya, ab ready hoon! Dobara try kar! 💪',
+      'Oops! Meri chai thandi ho gayi! Ek minute mein aata hoon! ☕',
+      'Bohot saare log baat kar rahe hain mujhse! Thodi der mein jawab dunga! 🚀',
+      'Network ka drama ho gaya! Ek baar aur try kar yaar! 📡'
+    ];
+    
+    res.status(500).json({ 
+      reply: funnyErrors[Math.floor(Math.random() * funnyErrors.length)],
+      error: error.message 
     });
   }
 });
 
-/* =======================
-   HEALTH CHECK
-   ======================= */
-app.get("/", (req, res) => {
-  res.json({ status: "MediRemind Backend Live 🚀" });
+// ✅ Test route for API
+app.get('/api/ai/chat', (req, res) => {
+  res.json({ 
+    message: 'Yeh POST route hai, GET nahi! Chatbot ko POST request bhejo 🤖',
+    hint: 'Frontend mein fetch POST use kar raha hai na?'
+  });
 });
 
-/* =======================
-   SERVER START
-   ======================= */
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-  console.log("Backend chal pada 🚀 Port:", PORT)
-);
-import express from "express";
-import cors from "cors";
-
-const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-app.get("/", (req, res) => {
-  res.send("Backend running");
+// ✅ Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: '✅ Healthy', 
+    groq: process.env.GROQ_API_KEY ? '✅ API Key set hai' : '❌ API Key nahi hai',
+    port: PORT,
+    time: new Date().toISOString()
+  });
 });
 
-app.post("/api/chat", (req, res) => {
-  res.json({ reply: "API working" });
+// ✅ 404 handler
+app.use((req, res) => {
+  res.status(404).json({ 
+    error: 'Yeh route exist nahi karta bhai!',
+    availableRoutes: ['/', '/health', '/api/ai/chat (POST)']
+  });
 });
 
-const PORT = process.env.PORT || 5000;
+// ✅ Start server
 app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
+  console.log(`
+  🚀 MediRemind Backend Started!
+  📍 Port: ${PORT}
+  🤖 Groq: ${process.env.GROQ_API_KEY ? 'Connected' : 'API Key Missing!'}
+  🌐 URL: https://amanshukla.onrender.com
+  `);
 });
