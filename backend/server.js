@@ -8,17 +8,28 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Proper CORS setup
+// ✅ FIXED CORS - ab 3002 bhi allow kiya
 app.use(cors({
-  origin: ['https://amanshukla-ashy.vercel.app', 'http://localhost:3000'],
+  origin: [
+    'https://amanshukla-ashy.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',  // ← yeh add kiya
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
+    'http://127.0.0.1:3002'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// ✅ OPTIONS request handle karo (preflight ke liye)
+app.options('*', cors());
+
 app.use(express.json());
 
-// ✅ Root route - check karo backend live hai ya nahi
+// ✅ Root route
 app.get('/', (req, res) => {
   res.json({ 
     status: 'MediRemind Backend Live 🚀',
@@ -45,12 +56,10 @@ app.post('/api/ai/chat', async (req, res) => {
 
     console.log('📨 User message:', message);
 
-    // System prompt for Hinglish responses
     const systemPrompt = `Tu MediRemind AI hai - ek friendly health assistant jo Hinglish mein baat karta hai. 
     Tera kaam hai logon ki health-related problems ka solution dena simple bhasha mein.
     Hamesha chhota aur helpful jawab de (max 3 lines). Emojis use kar.`;
 
-    // Call Groq API
     const completion = await groq.chat.completions.create({
       messages: [
         { role: 'system', content: systemPrompt },
@@ -73,7 +82,6 @@ app.post('/api/ai/chat', async (req, res) => {
   } catch (error) {
     console.error('❌ Groq API Error:', error);
     
-    // Funny error messages for users
     const funnyErrors = [
       'Arre yaar! Main thoda gym jaake aaya, ab ready hoon! Dobara try kar! 💪',
       'Oops! Meri chai thandi ho gayi! Ek minute mein aata hoon! ☕',
@@ -88,15 +96,7 @@ app.post('/api/ai/chat', async (req, res) => {
   }
 });
 
-// ✅ Test route for API
-app.get('/api/ai/chat', (req, res) => {
-  res.json({ 
-    message: 'Yeh POST route hai, GET nahi! Chatbot ko POST request bhejo 🤖',
-    hint: 'Frontend mein fetch POST use kar raha hai na?'
-  });
-});
-
-// ✅ Health check endpoint
+// ✅ Health check
 app.get('/health', (req, res) => {
   res.json({ 
     status: '✅ Healthy', 
@@ -114,7 +114,6 @@ app.use((req, res) => {
   });
 });
 
-// ✅ Start server
 app.listen(PORT, () => {
   console.log(`
   🚀 MediRemind Backend Started!
