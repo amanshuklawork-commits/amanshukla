@@ -1,32 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const BASE = process.env.REACT_APP_API_URL || 'https://amanshukla.onrender.com';
-const EMAILJS_SERVICE = 'service_acccr0a';
-const EMAILJS_TEMPLATE = 'template_5rvdrdz';
-const EMAILJS_KEY = 'OnaP9UdEqIAgSN4Tf';
-
-const sendReminderEmail = async (toEmail, medicineName, dosage, reminderTime) => {
-  try {
-    var response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        service_id: EMAILJS_SERVICE,
-        template_id: EMAILJS_TEMPLATE,
-        user_id: EMAILJS_KEY,
-        template_params: {
-          to_email: toEmail,
-          medicine_name: medicineName,
-          dosage: dosage,
-          reminder_time: reminderTime
-        }
-      })
-    });
-    return response.ok;
-  } catch (err) {
-    return false;
-  }
-};
 
 const styles = `
   .add-wrap {
@@ -162,6 +136,53 @@ const styles = `
     background: rgba(99,102,241,0.15);
     border-color: rgba(99,102,241,0.4);
     color: #818cf8;
+  }
+
+  .phone-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .country-select {
+    width: 130px;
+    padding: 14px 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    color: #f1f5f9;
+    font-size: 0.9rem;
+    font-family: 'Outfit', sans-serif;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .country-select option {
+    background: #0a0a0f;
+    color: #f1f5f9;
+  }
+
+  .phone-input {
+    flex: 1;
+    min-width: 180px;
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    color: #f1f5f9;
+    font-size: 0.95rem;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+
+  .phone-input::placeholder { color: #334155; }
+
+  .phone-input:focus {
+    border-color: rgba(99,102,241,0.5);
+    background: rgba(99,102,241,0.04);
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.08);
   }
 
   .submit-wrap { margin-top: 8px; }
@@ -311,8 +332,27 @@ const FREQUENCIES = [
   'Every 8 hours', 'Before meals', 'After meals', 'At bedtime'
 ];
 
+const COUNTRY_CODES = [
+  { code: '+91', country: 'India', flag: '🇮🇳' },
+  { code: '+1', country: 'USA', flag: '🇺🇸' },
+  { code: '+44', country: 'UK', flag: '🇬🇧' },
+  { code: '+61', country: 'Australia', flag: '🇦🇺' },
+  { code: '+1', country: 'Canada', flag: '🇨🇦' },
+  { code: '+65', country: 'Singapore', flag: '🇸🇬' },
+  { code: '+971', country: 'UAE', flag: '🇦🇪' },
+  { code: '+49', country: 'Germany', flag: '🇩🇪' },
+  { code: '+33', country: 'France', flag: '🇫🇷' },
+];
+
 function AddMedicine() {
-  const [form, setForm] = useState({ name: '', dosage: '', frequency: '', time: '', email: '' });
+  const [form, setForm] = useState({
+    name: '',
+    dosage: '',
+    frequency: '',
+    time: '',
+    phoneCountry: '+91',
+    phoneNumber: ''
+  });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -325,19 +365,30 @@ function AddMedicine() {
     setLoading(true);
     try {
       var times = form.time.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
+      // Combine phone country code and number if present
+      var fullPhone = form.phoneNumber ? form.phoneCountry + form.phoneNumber : '';
       var response = await fetch(BASE + '/api/medicines', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: form.name, dosage: form.dosage, frequency: form.frequency, time: times })
+        body: JSON.stringify({
+          name: form.name,
+          dosage: form.dosage,
+          frequency: form.frequency,
+          time: times,
+          phone: fullPhone  // send phone number to backend
+        })
       });
       if (!response.ok) throw new Error('Failed');
 
-      if (form.email) {
-        await sendReminderEmail(form.email, form.name, form.dosage, form.time);
-      }
-
       setSuccess(true);
-      setForm({ name: '', dosage: '', frequency: '', time: '', email: '' });
+      setForm({
+        name: '',
+        dosage: '',
+        frequency: '',
+        time: '',
+        phoneCountry: '+91',
+        phoneNumber: ''
+      });
       setTimeout(function() { setSuccess(false); }, 3500);
     } catch (err) {
       alert('Error adding medicine! Please try again.');
@@ -391,11 +442,32 @@ function AddMedicine() {
               <span className="field-hint">Separate multiple times with commas</span>
             </div>
 
+            {/* Phone Number Field */}
             <div className="field-wrap">
-              <label className="field-label">Email for Reminder (Optional)</label>
-              <input className="field-input" type="email" placeholder="aapka@email.com - reminder email aayega!"
-                value={form.email} onChange={function(e) { setForm({ ...form, email: e.target.value }); }} />
-              <span className="field-hint">Email dalo toh medicine add hone par confirmation email aayega!</span>
+              <label className="field-label">📞 Phone Number for SMS Reminders</label>
+              <div className="phone-row">
+                <select
+                  className="country-select"
+                  value={form.phoneCountry}
+                  onChange={function(e) { setForm({ ...form, phoneCountry: e.target.value }); }}
+                >
+                  {COUNTRY_CODES.map(function(c, i) {
+                    return (
+                      <option key={i} value={c.code}>
+                        {c.flag} {c.code} ({c.country})
+                      </option>
+                    );
+                  })}
+                </select>
+                <input
+                  className="phone-input"
+                  type="tel"
+                  placeholder="Enter phone number"
+                  value={form.phoneNumber}
+                  onChange={function(e) { setForm({ ...form, phoneNumber: e.target.value }); }}
+                />
+              </div>
+              <span className="field-hint">SMS reminders will be sent to this number when medicine time arrives</span>
             </div>
 
             <div className="submit-wrap">
@@ -414,13 +486,13 @@ function AddMedicine() {
               <div className="preview-row"><strong>Dosage:</strong> {form.dosage || '-'}</div>
               <div className="preview-row"><strong>Frequency:</strong> {form.frequency || '-'}</div>
               <div className="preview-row"><strong>Times:</strong> {form.time || '-'}</div>
-              <div className="preview-row"><strong>Email:</strong> {form.email || '-'}</div>
+              <div className="preview-row"><strong>Phone:</strong> {form.phoneNumber ? form.phoneCountry + ' ' + form.phoneNumber : '-'}</div>
             </div>
           </div>
 
           <div className="tips-section">
             <div className="tips-title">Pro Tips</div>
-            <div className="tip-item"><span className="tip-icon">📧</span>Email dalo - medicine add hone par reminder email aayega!</div>
+            <div className="tip-item"><span className="tip-icon">📱</span>Phone number optional – SMS reminders will help you never miss a dose!</div>
             <div className="tip-item"><span className="tip-icon">⏰</span>Set reminders at consistent times every day</div>
             <div className="tip-item"><span className="tip-icon">💧</span>Always take medicines with a full glass of water</div>
             <div className="tip-item"><span className="tip-icon">🤖</span>Use AI Health Tips on Dashboard for advice</div>
@@ -429,7 +501,7 @@ function AddMedicine() {
       </div>
 
       {success && (
-        <div className="toast">Medicine added! Email reminder bheja gaya!</div>
+        <div className="toast">✅ Medicine added successfully!</div>
       )}
     </>
   );

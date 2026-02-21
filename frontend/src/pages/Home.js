@@ -29,6 +29,78 @@ const styles = `
     50% { transform: translateY(-40px) scale(1.08); }
   }
 
+  /* Stars */
+  .stars {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background: transparent;
+    background-image: 
+      radial-gradient(2px 2px at 10px 30px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 90px 140px, #fff, rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 160px 80px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 260px 190px, #fff, rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 350px 280px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 480px 50px, #fff, rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 550px 320px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 670px 180px, #fff, rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 750px 400px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 820px 120px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 20px 520px, #fff, rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 150px 650px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 280px 720px, #fff, rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 420px 880px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 590px 950px, #fff, rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 720px 780px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 880px 920px, #fff, rgba(0,0,0,0));
+    background-repeat: repeat;
+    opacity: 0.3;
+    animation: twinkle 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes twinkle {
+    0% { opacity: 0.2; }
+    50% { opacity: 0.5; }
+    100% { opacity: 0.3; }
+  }
+
+  .shooting-stars {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .shooting-star {
+    position: absolute;
+    width: 150px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.8), rgba(255,255,255,0));
+    transform: rotate(-45deg);
+    animation: shoot 3s linear forwards;
+  }
+
+  @keyframes shoot {
+    0% {
+      transform: translateX(0) translateY(0) rotate(-45deg);
+      opacity: 1;
+    }
+    70% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(calc(100vw + 200px)) translateY(calc(100vh + 200px)) rotate(-45deg);
+      opacity: 0;
+    }
+  }
+
   .hero {
     min-height: calc(100vh - 68px);
     display: flex;
@@ -102,7 +174,7 @@ const styles = `
 
   .hero-sub {
     font-size: 1rem;
-    color: #475569;
+    color: #94a3b8;
     max-width: 480px;
     line-height: 1.75;
     margin-bottom: 32px;
@@ -206,7 +278,7 @@ const styles = `
 
   .stat-lbl {
     font-size: 0.62rem;
-    color: #334155;
+    color: #64748b;
     text-transform: uppercase;
     letter-spacing: 0.8px;
     margin-top: 5px;
@@ -219,7 +291,6 @@ const styles = `
     margin: 0 auto;
     position: relative;
     z-index: 1;
-    background: transparent;
   }
 
   .section-inner {
@@ -352,16 +423,87 @@ const styles = `
 `;
 
 function Home() {
-  const [count, setCount] = useState(0);
+  const [stats, setStats] = useState({
+    medicines: 0,
+    features: 0,
+    accuracy: 0,
+    aiSupport: 0
+  });
+
+  const [shootingStars, setShootingStars] = useState([]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCount(prev => {
-        if (prev >= 2847) { clearInterval(timer); return 2847; }
-        return prev + 31;
+    const targetMed = 2847;
+    const targetFeat = 8;
+    const targetAcc = 99;
+    const targetAI = 24;
+
+    const medInterval = setInterval(() => {
+      setStats(prev => {
+        if (prev.medicines >= targetMed) {
+          clearInterval(medInterval);
+          return prev;
+        }
+        const step = Math.min(31, targetMed - prev.medicines);
+        return { ...prev, medicines: prev.medicines + step };
       });
     }, 20);
-    return () => clearInterval(timer);
+
+    const featInterval = setInterval(() => {
+      setStats(prev => {
+        if (prev.features >= targetFeat) {
+          clearInterval(featInterval);
+          return prev;
+        }
+        return { ...prev, features: prev.features + 1 };
+      });
+    }, 200);
+
+    const accInterval = setInterval(() => {
+      setStats(prev => {
+        if (prev.accuracy >= targetAcc) {
+          clearInterval(accInterval);
+          return prev;
+        }
+        const step = Math.min(2, targetAcc - prev.accuracy);
+        return { ...prev, accuracy: prev.accuracy + step };
+      });
+    }, 30);
+
+    const aiInterval = setInterval(() => {
+      setStats(prev => {
+        if (prev.aiSupport >= targetAI) {
+          clearInterval(aiInterval);
+          return prev;
+        }
+        return { ...prev, aiSupport: prev.aiSupport + 1 };
+      });
+    }, 80);
+
+    return () => {
+      clearInterval(medInterval);
+      clearInterval(featInterval);
+      clearInterval(accInterval);
+      clearInterval(aiInterval);
+    };
+  }, []);
+
+  useEffect(() => {
+    const generateShootingStar = () => {
+      const id = Date.now() + Math.random();
+      const startX = Math.random() * window.innerWidth * 0.3;
+      const startY = Math.random() * window.innerHeight * 0.3;
+      setShootingStars(prev => [...prev, { id, startX, startY }]);
+
+      setTimeout(() => {
+        setShootingStars(prev => prev.filter(star => star.id !== id));
+      }, 3000);
+    };
+
+    generateShootingStar();
+    const interval = setInterval(generateShootingStar, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const features = [
@@ -378,6 +520,22 @@ function Home() {
   return (
     <>
       <style>{styles}</style>
+      
+      {/* Stars */}
+      <div className="stars"></div>
+      <div className="shooting-stars">
+        {shootingStars.map(star => (
+          <div
+            key={star.id}
+            className="shooting-star"
+            style={{
+              left: star.startX + 'px',
+              top: star.startY + 'px'
+            }}
+          />
+        ))}
+      </div>
+
       <div className="home-wrap">
         <div className="orb orb1"></div>
         <div className="orb orb2"></div>
@@ -406,19 +564,19 @@ function Home() {
 
           <div className="stats-band">
             <div className="stat-item">
-              <span className="stat-num">{count.toLocaleString()}+</span>
+              <span className="stat-num">{stats.medicines.toLocaleString()}+</span>
               <span className="stat-lbl">Medicines Tracked</span>
             </div>
             <div className="stat-item">
-              <span className="stat-num">8</span>
+              <span className="stat-num">{stats.features}</span>
               <span className="stat-lbl">Features</span>
             </div>
             <div className="stat-item">
-              <span className="stat-num">99%</span>
+              <span className="stat-num">{stats.accuracy}%</span>
               <span className="stat-lbl">Accuracy</span>
             </div>
             <div className="stat-item">
-              <span className="stat-num">24/7</span>
+              <span className="stat-num">{stats.aiSupport}/7</span>
               <span className="stat-lbl">AI Support</span>
             </div>
           </div>

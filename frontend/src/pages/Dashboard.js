@@ -4,6 +4,9 @@ const BASE = process.env.REACT_APP_API_URL || 'https://amanshukla.onrender.com';
 
 function Dashboard() {
   const [medicines, setMedicines] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [debugInfo, setDebugInfo] = useState('');
 
   useEffect(() => {
     fetchMedicines();
@@ -11,23 +14,106 @@ function Dashboard() {
 
   const fetchMedicines = async () => {
     try {
+      setLoading(true);
+      setError(null);
+      setDebugInfo('');
+      
       const response = await fetch(BASE + '/api/medicines');
-      const data = await response.json();
-      setMedicines(data);
+      
+      // Try to get the response text first (in case it's not JSON)
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        // If it's not JSON, show the raw HTML/text
+        setDebugInfo('Server returned non-JSON: ' + responseText.substring(0, 200));
+        throw new Error('Invalid JSON response from server');
+      }
+
+      // Now try to extract medicines array
+      let medicinesArray = [];
+      if (Array.isArray(data)) {
+        medicinesArray = data;
+      } else if (data && Array.isArray(data.medicines)) {
+        medicinesArray = data.medicines;
+      } else if (data && data.data && Array.isArray(data.data)) {
+        medicinesArray = data.data;
+      } else {
+        setDebugInfo('Unexpected data structure: ' + JSON.stringify(data).substring(0, 200));
+        throw new Error('Invalid data format');
+      }
+
+      setMedicines(medicinesArray);
     } catch (error) {
       console.error('Error fetching medicines:', error);
+      setError('Failed to load medicines. ' + error.message);
+      setMedicines([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   const deleteMedicine = async (id) => {
     try {
       await fetch(BASE + '/api/medicines/' + id, { method: 'DELETE' });
-      setMedicines(medicines.filter(function(m) { return m._id !== id; }));
+      setMedicines(prev => prev.filter(m => m._id !== id));
     } catch (error) {
       console.error('Error deleting medicine:', error);
+      alert('Failed to delete medicine');
     }
   };
 
+  if (loading) {
+    return (
+      <div className="dash-wrap" style={{ textAlign: 'center', padding: '50px' }}>
+        <div className="spinner"></div>
+        <p>Loading your medicines...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="dash-wrap" style={{ textAlign: 'center', padding: '50px' }}>
+        <p style={{ color: '#ef4444', marginBottom: '20px' }}>{error}</p>
+        {debugInfo && (
+          <pre style={{ 
+            background: '#1a1a1a', 
+            padding: '15px', 
+            borderRadius: '8px', 
+            color: '#ffaa00',
+            textAlign: 'left',
+            overflow: 'auto',
+            maxWidth: '600px',
+            margin: '0 auto 20px'
+          }}>
+            {debugInfo}
+          </pre>
+        )}
+        <button 
+          onClick={fetchMedicines}
+          style={{
+            padding: '10px 24px',
+            background: 'linear-gradient(135deg, #6366f1, #06b6d4)',
+            border: 'none',
+            borderRadius: '12px',
+            color: 'white',
+            fontSize: '0.9rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            boxShadow: '0 0 20px rgba(99,102,241,0.4)'
+          }}
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  // ... rest of your component (the same as before)
   return (
     <>
       <style>{`
@@ -163,6 +249,15 @@ function Dashboard() {
         .empty-sub { color: #334155; font-size: 0.88rem; }
         .empty-sub a { color: #818cf8; text-decoration: none; }
         .empty-sub a:hover { text-decoration: underline; }
+        .spinner {
+          width: 40px; height: 40px;
+          border: 3px solid rgba(99,102,241,0.3);
+          border-top-color: #6366f1;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin: 0 auto 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
 
       <div className="dash-wrap">
@@ -181,33 +276,31 @@ function Dashboard() {
           </div>
         ) : (
           <div className="meds-grid">
-            {medicines.map(function(medicine) {
-              return (
-                <div key={medicine._id} className="med-card">
-                  <button className="btn-delete" onClick={function() { deleteMedicine(medicine._id); }}>
-                    Delete
-                  </button>
-                  <div className="med-name">
-                    <span>💊</span>
-                    {medicine.name}
-                  </div>
-                  <div className="med-detail">
-                    <strong>Dosage:</strong> {medicine.dosage}
-                  </div>
-                  <div className="med-detail">
-                    <strong>Frequency:</strong> {medicine.frequency}
-                  </div>
-                  <div className="med-time-tags">
-                    {(Array.isArray(medicine.time) ? medicine.time : [medicine.time]).map(function(t, i) {
-                      return <span key={i} className="med-time-tag">⏰ {t}</span>;
-                    })}
-                  </div>
-                  <div className="med-added">
-                    Added: {new Date(medicine.createdAt).toLocaleDateString()}
-                  </div>
+            {medicines.map((medicine) => (
+              <div key={medicine._id} className="med-card">
+                <button className="btn-delete" onClick={() => deleteMedicine(medicine._id)}>
+                  Delete
+                </button>
+                <div className="med-name">
+                  <span>💊</span>
+                  {medicine.name}
                 </div>
-              );
-            })}
+                <div className="med-detail">
+                  <strong>Dosage:</strong> {medicine.dosage}
+                </div>
+                <div className="med-detail">
+                  <strong>Frequency:</strong> {medicine.frequency}
+                </div>
+                <div className="med-time-tags">
+                  {(Array.isArray(medicine.time) ? medicine.time : [medicine.time]).map((t, i) => (
+                    <span key={i} className="med-time-tag">⏰ {t}</span>
+                  ))}
+                </div>
+                <div className="med-added">
+                  Added: {new Date(medicine.createdAt).toLocaleDateString()}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

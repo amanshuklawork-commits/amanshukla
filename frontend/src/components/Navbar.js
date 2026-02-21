@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';  // 👈 lowercase 'c' – matches folder name
 import './Navbar.css';
 
 function DNALogo() {
@@ -18,21 +19,14 @@ function DNALogo() {
         </linearGradient>
       </defs>
 
-      {/* Background circle */}
       <circle cx="19" cy="19" r="19" fill="url(#dnaGrad1)" opacity="0.15"/>
       <circle cx="19" cy="19" r="18" stroke="url(#dnaGrad1)" strokeWidth="1" fill="none" opacity="0.4"/>
-
-      {/* Medical Cross */}
       <rect x="16" y="9" width="6" height="20" rx="2" fill="url(#dnaGrad1)" opacity="0.9"/>
       <rect x="9" y="16" width="20" height="6" rx="2" fill="url(#dnaGrad1)" opacity="0.9"/>
-
-      {/* DNA dots overlay */}
       <circle cx="13" cy="13" r="2" fill="#06b6d4" opacity="0.8"/>
       <circle cx="25" cy="13" r="2" fill="#10b981" opacity="0.8"/>
       <circle cx="13" cy="25" r="2" fill="#f59e0b" opacity="0.8"/>
       <circle cx="25" cy="25" r="2" fill="#a855f7" opacity="0.8"/>
-
-      {/* Center pulse dot */}
       <circle cx="19" cy="19" r="3" fill="white" opacity="0.95"/>
       <circle cx="19" cy="19" r="1.5" fill="url(#dnaGrad1)"/>
     </svg>
@@ -42,6 +36,7 @@ function DNALogo() {
 function Navbar() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { darkMode, toggleTheme } = useTheme();
 
   const links = [
     { to: '/', label: 'Home', icon: '🏠' },
@@ -82,6 +77,11 @@ function Navbar() {
           <span className="score-dot"></span>
           <span>Health Score: <strong>92</strong></span>
         </div>
+
+        <button className="theme-toggle" onClick={toggleTheme}>
+          {darkMode ? '☀️' : '🌙'}
+        </button>
+
         <button
           className="menu-toggle"
           onClick={() => setMenuOpen(!menuOpen)}

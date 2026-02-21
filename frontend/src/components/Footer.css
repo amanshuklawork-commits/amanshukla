@@ -1,0 +1,37 @@
+.site-footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 0.9rem;
+  position: relative;
+  z-index: 5;
+  background: transparent;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  margin-top: 40px;
+}
+
+.glowing-link {
+  color: #ffffff;                /* white text */
+  text-decoration: none;         /* remove underline */
+  display: inline-block;
+  padding: 4px 16px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.2);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.3s ease;     /* smooth hover effect */
+}
+
+/* Hover/touch glow effect – only appears when mouse is near/over */
+.glowing-link:hover {
+  color: #ffffff;
+  text-shadow: 0 0 8px #6366f1, 0 0 16px #06b6d4, 0 0 24px #a855f7;
+  box-shadow: 0 0 12px rgba(99,102,241,0.5), 0 0 24px rgba(6,182,212,0.3);
+  border-color: rgba(255,255,255,0.3);
+  transform: scale(1.02);        /* tiny enlargement on hover */
+}
+
+/* Optional: active (click) effect */
+.glowing-link:active {
+  transform: scale(0.98);
+  transition: transform 0.1s;
+}

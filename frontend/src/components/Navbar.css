@@ -189,6 +189,27 @@ body {
   50% { opacity: 0.5; transform: scale(1.3); }
 }
 
+/* Theme Toggle Button (NEW) */
+.theme-toggle {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+  margin-right: 8px;
+}
+
+.theme-toggle:hover {
+  background: rgba(99,102,241,0.2);
+  transform: scale(1.05);
+}
+
 /* Mobile toggle */
 .menu-toggle {
   display: none;
@@ -218,6 +239,14 @@ body {
   }
 
   .health-score { display: none; }
+
+  /* Adjust theme toggle on mobile */
+  .theme-toggle {
+    margin-right: 4px;
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
 
   .navbar-links {
     position: fixed;

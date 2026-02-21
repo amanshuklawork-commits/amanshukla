@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Chatbot from './components/Chatbot';
+import Footer from './components/Footer';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import AddMedicine from './pages/AddMedicine';
@@ -29,6 +30,7 @@ function App() {
         <Route path="/stats" element={<HealthStats />} />
         <Route path="/family" element={<Family />} />
       </Routes>
+      <Footer />
       <Chatbot />
     </Router>
   );
