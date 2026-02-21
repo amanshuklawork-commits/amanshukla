@@ -82,10 +82,10 @@ app.post('/api/ai/chat', async (req, res) => {
 
     const completion = await groq.chat.completions.create({
       messages: [
-        { role: 'system', content: 'Tu Hinglish mein health assistant hai.' },
+        { role: 'system', content: 'Tu ek helpful health assistant hai. Hinglish mein jawab de. Short aur clear rakho.' },
         { role: 'user', content: message }
       ],
-      model: 'llama3-70b-8192',
+      model: 'llama-3.3-70b-versatile',
       temperature: 0.7,
       max_tokens: 200
     });
@@ -93,6 +93,7 @@ app.post('/api/ai/chat', async (req, res) => {
     const reply = completion.choices[0]?.message?.content || 'Kuch error aa gaya!';
     res.json({ reply });
   } catch (error) {
+    console.error('Groq Error:', error.message);
     res.status(500).json({ reply: 'Main thoda busy tha, ab ready hoon! Dobara try kar.' });
   }
 });
@@ -104,9 +105,10 @@ app.get('/health', (req, res) => {
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ error: 'Route exist nahi karta' });
+  res.status(404).json({ error: 'Yeh route exist nahi karta bhai!', availableRoutes: ['/', '/health', '/api/ai/chat (POST)'] });
 });
 
 app.listen(PORT, () => {
   console.log(`🚀 Backend running on port ${PORT}`);
 });
+```
