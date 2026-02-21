@@ -1,104 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
 const styles = `
+  body { background: #030306 !important; }
+
+  #star-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+  }
+
   .home-wrap {
     min-height: calc(100vh - 68px);
     position: relative;
-    z-index: 1;
+    z-index: 2;
     overflow-x: hidden;
-    background: #030306;
-  }
-
-  .orb {
-    position: fixed;
-    border-radius: 50%;
-    filter: blur(100px);
-    opacity: 0.07;
-    pointer-events: none;
-    animation: orbFloat 8s ease-in-out infinite;
-    z-index: 0;
-  }
-  .orb1 { width: 600px; height: 600px; background: #6366f1; top: -150px; left: -150px; animation-delay: 0s; }
-  .orb2 { width: 500px; height: 500px; background: #06b6d4; top: 20%; right: -150px; animation-delay: 2s; }
-  .orb3 { width: 400px; height: 400px; background: #10b981; bottom: 10%; left: 20%; animation-delay: 4s; }
-  .orb4 { width: 350px; height: 350px; background: #a855f7; bottom: 30%; right: 10%; animation-delay: 6s; }
-
-  @keyframes orbFloat {
-    0%, 100% { transform: translateY(0px) scale(1); }
-    50% { transform: translateY(-40px) scale(1.08); }
-  }
-
-  /* Stars */
-  .stars {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 0;
     background: transparent;
-    background-image: 
-      radial-gradient(2px 2px at 10px 30px, #fff, rgba(0,0,0,0)),
-      radial-gradient(2px 2px at 90px 140px, #fff, rgba(0,0,0,0)),
-      radial-gradient(1px 1px at 160px 80px, #fff, rgba(0,0,0,0)),
-      radial-gradient(2px 2px at 260px 190px, #fff, rgba(0,0,0,0)),
-      radial-gradient(1px 1px at 350px 280px, #fff, rgba(0,0,0,0)),
-      radial-gradient(2px 2px at 480px 50px, #fff, rgba(0,0,0,0)),
-      radial-gradient(1px 1px at 550px 320px, #fff, rgba(0,0,0,0)),
-      radial-gradient(2px 2px at 670px 180px, #fff, rgba(0,0,0,0)),
-      radial-gradient(1px 1px at 750px 400px, #fff, rgba(0,0,0,0)),
-      radial-gradient(2px 2px at 820px 120px, #fff, rgba(0,0,0,0)),
-      radial-gradient(2px 2px at 20px 520px, #fff, rgba(0,0,0,0)),
-      radial-gradient(1px 1px at 150px 650px, #fff, rgba(0,0,0,0)),
-      radial-gradient(2px 2px at 280px 720px, #fff, rgba(0,0,0,0)),
-      radial-gradient(1px 1px at 420px 880px, #fff, rgba(0,0,0,0)),
-      radial-gradient(2px 2px at 590px 950px, #fff, rgba(0,0,0,0)),
-      radial-gradient(1px 1px at 720px 780px, #fff, rgba(0,0,0,0)),
-      radial-gradient(2px 2px at 880px 920px, #fff, rgba(0,0,0,0));
-    background-repeat: repeat;
-    opacity: 0.3;
-    animation: twinkle 8s ease-in-out infinite alternate;
-  }
-
-  @keyframes twinkle {
-    0% { opacity: 0.2; }
-    50% { opacity: 0.5; }
-    100% { opacity: 0.3; }
-  }
-
-  .shooting-stars {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .shooting-star {
-    position: absolute;
-    width: 150px;
-    height: 1px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.8), rgba(255,255,255,0));
-    transform: rotate(-45deg);
-    animation: shoot 3s linear forwards;
-  }
-
-  @keyframes shoot {
-    0% {
-      transform: translateX(0) translateY(0) rotate(-45deg);
-      opacity: 1;
-    }
-    70% {
-      opacity: 1;
-    }
-    100% {
-      transform: translateX(calc(100vw + 200px)) translateY(calc(100vh + 200px)) rotate(-45deg);
-      opacity: 0;
-    }
   }
 
   .hero {
@@ -110,7 +31,7 @@ const styles = `
     text-align: center;
     padding: 20px 20px;
     position: relative;
-    z-index: 1;
+    z-index: 2;
     background: transparent;
   }
 
@@ -290,7 +211,7 @@ const styles = `
     max-width: 1100px;
     margin: 0 auto;
     position: relative;
-    z-index: 1;
+    z-index: 2;
   }
 
   .section-inner {
@@ -420,131 +341,183 @@ const styles = `
     from { opacity: 0; transform: translateY(30px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  @media (max-width: 480px) {
+    .stats-band {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .stat-item:nth-child(2) { border-right: none; }
+    .stat-item:nth-child(1),
+    .stat-item:nth-child(2) {
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+  }
 `;
 
 function Home() {
+  const canvasRef = useRef(null);
+  const scrollYRef = useRef(0);
+  const animFrameRef = useRef(null);
+
   const [stats, setStats] = useState({
-    medicines: 0,
-    features: 0,
-    accuracy: 0,
-    aiSupport: 0
+    medicines: 0, features: 0, accuracy: 0, aiSupport: 0
   });
 
-  const [shootingStars, setShootingStars] = useState([]);
-
+  // ── CANVAS STARS ──────────────────────────────────────────
   useEffect(() => {
-    const targetMed = 2847;
-    const targetFeat = 8;
-    const targetAcc = 99;
-    const targetAI = 24;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
 
-    const medInterval = setInterval(() => {
-      setStats(prev => {
-        if (prev.medicines >= targetMed) {
-          clearInterval(medInterval);
-          return prev;
-        }
-        const step = Math.min(31, targetMed - prev.medicines);
-        return { ...prev, medicines: prev.medicines + step };
-      });
-    }, 20);
+    let width  = canvas.width  = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
 
-    const featInterval = setInterval(() => {
-      setStats(prev => {
-        if (prev.features >= targetFeat) {
-          clearInterval(featInterval);
-          return prev;
-        }
-        return { ...prev, features: prev.features + 1 };
-      });
-    }, 200);
+    const STAR_COUNT = 200;
+    const stars = Array.from({ length: STAR_COUNT }, () => ({
+      x:     Math.random() * width,
+      y:     Math.random() * height,
+      r:     Math.random() * 1.6 + 0.3,
+      speed: Math.random() * 0.006 + 0.002,
+      phase: Math.random() * Math.PI * 2,
+    }));
 
-    const accInterval = setInterval(() => {
-      setStats(prev => {
-        if (prev.accuracy >= targetAcc) {
-          clearInterval(accInterval);
-          return prev;
-        }
-        const step = Math.min(2, targetAcc - prev.accuracy);
-        return { ...prev, accuracy: prev.accuracy + step };
-      });
-    }, 30);
+    let shootingStar = null;
+    let lastShot = -9999;
 
-    const aiInterval = setInterval(() => {
-      setStats(prev => {
-        if (prev.aiSupport >= targetAI) {
-          clearInterval(aiInterval);
-          return prev;
-        }
-        return { ...prev, aiSupport: prev.aiSupport + 1 };
+    function spawnShootingStar(now) {
+      shootingStar = {
+        x:         Math.random() * width  * 0.7,
+        y:         Math.random() * height * 0.4,
+        vx:        7  + Math.random() * 5,
+        vy:        4  + Math.random() * 3,
+        len:       130 + Math.random() * 80,
+        startTime: now,
+        duration:  900 + Math.random() * 400,
+      };
+      lastShot = now;
+    }
+
+    function draw(now) {
+      const parallax = scrollYRef.current * 0.12;
+
+      // Dark background drawn on canvas itself
+      ctx.fillStyle = '#030306';
+      ctx.fillRect(0, 0, width, height);
+
+      // Stars
+      stars.forEach(s => {
+        const alpha = 0.25 + 0.75 * (0.5 + 0.5 * Math.sin(now * s.speed + s.phase));
+        const yPos  = ((s.y - parallax) % height + height) % height;
+        ctx.beginPath();
+        ctx.arc(s.x, yPos, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(2)})`;
+        ctx.fill();
       });
-    }, 80);
+
+      // Shooting star spawn
+      if (now - lastShot > 5000) spawnShootingStar(now);
+
+      if (shootingStar) {
+        const elapsed  = now - shootingStar.startTime;
+        const progress = elapsed / shootingStar.duration;
+
+        if (progress >= 1) {
+          shootingStar = null;
+        } else {
+          const sx    = shootingStar.x + shootingStar.vx * elapsed * 0.12;
+          const sy    = shootingStar.y + shootingStar.vy * elapsed * 0.12;
+          const tailX = sx - shootingStar.len * 0.85;
+          const tailY = sy - shootingStar.len * 0.5;
+          const alpha = progress < 0.65 ? 1 : 1 - (progress - 0.65) / 0.35;
+
+          const grad = ctx.createLinearGradient(tailX, tailY, sx, sy);
+          grad.addColorStop(0,   `rgba(255,255,255,0)`);
+          grad.addColorStop(0.6, `rgba(180,220,255,${(alpha * 0.5).toFixed(2)})`);
+          grad.addColorStop(1,   `rgba(255,255,255,${alpha.toFixed(2)})`);
+
+          ctx.beginPath();
+          ctx.moveTo(tailX, tailY);
+          ctx.lineTo(sx, sy);
+          ctx.strokeStyle = grad;
+          ctx.lineWidth   = 2;
+          ctx.stroke();
+
+          // Glow head
+          ctx.beginPath();
+          ctx.arc(sx, sy, 2.5, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(2)})`;
+          ctx.fill();
+        }
+      }
+
+      animFrameRef.current = requestAnimationFrame(draw);
+    }
+
+    animFrameRef.current = requestAnimationFrame(draw);
+
+    const onScroll  = () => { scrollYRef.current = window.scrollY; };
+    const onResize  = () => {
+      width  = canvas.width  = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+
+    window.addEventListener('scroll', onScroll);
+    window.addEventListener('resize', onResize);
 
     return () => {
-      clearInterval(medInterval);
-      clearInterval(featInterval);
-      clearInterval(accInterval);
-      clearInterval(aiInterval);
+      cancelAnimationFrame(animFrameRef.current);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
     };
   }, []);
 
+  // ── STATS COUNTER ─────────────────────────────────────────
   useEffect(() => {
-    const generateShootingStar = () => {
-      const id = Date.now() + Math.random();
-      const startX = Math.random() * window.innerWidth * 0.3;
-      const startY = Math.random() * window.innerHeight * 0.3;
-      setShootingStars(prev => [...prev, { id, startX, startY }]);
+    const targets = { medicines: 2847, features: 8, accuracy: 99, aiSupport: 24 };
 
-      setTimeout(() => {
-        setShootingStars(prev => prev.filter(star => star.id !== id));
-      }, 3000);
-    };
+    const med = setInterval(() => setStats(p => {
+      if (p.medicines >= targets.medicines) { clearInterval(med); return p; }
+      return { ...p, medicines: p.medicines + Math.min(31, targets.medicines - p.medicines) };
+    }), 20);
 
-    generateShootingStar();
-    const interval = setInterval(generateShootingStar, 5000);
+    const feat = setInterval(() => setStats(p => {
+      if (p.features >= targets.features) { clearInterval(feat); return p; }
+      return { ...p, features: p.features + 1 };
+    }), 200);
 
-    return () => clearInterval(interval);
+    const acc = setInterval(() => setStats(p => {
+      if (p.accuracy >= targets.accuracy) { clearInterval(acc); return p; }
+      return { ...p, accuracy: p.accuracy + Math.min(2, targets.accuracy - p.accuracy) };
+    }), 30);
+
+    const ai = setInterval(() => setStats(p => {
+      if (p.aiSupport >= targets.aiSupport) { clearInterval(ai); return p; }
+      return { ...p, aiSupport: p.aiSupport + 1 };
+    }), 80);
+
+    return () => { clearInterval(med); clearInterval(feat); clearInterval(acc); clearInterval(ai); };
   }, []);
 
   const features = [
-    { icon: '💊', title: 'Medicine Tracker', desc: 'Add, manage and track all your daily medications with smart reminders', color: 'c1', link: '/dashboard' },
-    { icon: '🏥', title: 'Nearby Hospitals', desc: 'Find hospitals, clinics and pharmacies near your location instantly', color: 'c2', link: '/hospitals' },
-    { icon: '📅', title: 'Medicine Calendar', desc: 'Visual calendar view of your complete medication schedule', color: 'c3', link: '/calendar' },
-    { icon: '🚨', title: 'Emergency Contacts', desc: 'Quick access to emergency contacts and SOS calling feature', color: 'c5', link: '/emergency' },
-    { icon: '📈', title: 'Health Stats', desc: 'Charts and analytics of your health and medication adherence', color: 'c4', link: '/stats' },
-    { icon: '💧', title: 'Water Tracker', desc: 'Track daily water intake and stay hydrated for better health', color: 'c6', link: '/water' },
-    { icon: '🌡️', title: 'Symptoms Tracker', desc: 'Log and monitor your symptoms with AI-powered insights', color: 'c7', link: '/symptoms' },
-    { icon: '👨‍👩‍👧', title: 'Family Medicines', desc: 'Manage medications for your entire family in one place', color: 'c8', link: '/family' },
+    { icon: '💊', title: 'Medicine Tracker',   desc: 'Add, manage and track all your daily medications with smart reminders',          color: 'c1', link: '/dashboard' },
+    { icon: '🏥', title: 'Nearby Hospitals',    desc: 'Find hospitals, clinics and pharmacies near your location instantly',             color: 'c2', link: '/hospitals' },
+    { icon: '📅', title: 'Medicine Calendar',   desc: 'Visual calendar view of your complete medication schedule',                      color: 'c3', link: '/calendar'  },
+    { icon: '🚨', title: 'Emergency Contacts',  desc: 'Quick access to emergency contacts and SOS calling feature',                     color: 'c5', link: '/emergency' },
+    { icon: '📈', title: 'Health Stats',        desc: 'Charts and analytics of your health and medication adherence',                   color: 'c4', link: '/stats'     },
+    { icon: '💧', title: 'Water Tracker',       desc: 'Track daily water intake and stay hydrated for better health',                   color: 'c6', link: '/water'     },
+    { icon: '🌡️', title: 'Symptoms Tracker',   desc: 'Log and monitor your symptoms with AI-powered insights',                         color: 'c7', link: '/symptoms'  },
+    { icon: '👨‍👩‍👧', title: 'Family Medicines', desc: 'Manage medications for your entire family in one place',                     color: 'c8', link: '/family'    },
   ];
 
   return (
     <>
       <style>{styles}</style>
-      
-      {/* Stars */}
-      <div className="stars"></div>
-      <div className="shooting-stars">
-        {shootingStars.map(star => (
-          <div
-            key={star.id}
-            className="shooting-star"
-            style={{
-              left: star.startX + 'px',
-              top: star.startY + 'px'
-            }}
-          />
-        ))}
-      </div>
+
+      <canvas ref={canvasRef} id="star-canvas" />
 
       <div className="home-wrap">
-        <div className="orb orb1"></div>
-        <div className="orb orb2"></div>
-        <div className="orb orb3"></div>
-        <div className="orb orb4"></div>
-
         <div className="hero">
           <div className="hero-badge">
-            <span className="live-dot"></span>
+            <span className="live-dot" />
             AI-Powered Health Assistant — Always On
           </div>
 
@@ -558,7 +531,7 @@ function Home() {
           </p>
 
           <div className="hero-btns">
-            <Link to="/add" className="btn-glow primary">➕ Add Medicine</Link>
+            <Link to="/add"       className="btn-glow primary">➕ Add Medicine</Link>
             <Link to="/dashboard" className="btn-glow secondary">📋 View Dashboard</Link>
           </div>
 
