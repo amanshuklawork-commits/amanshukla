@@ -5,7 +5,7 @@ const Footer = () => {
   return (
     <footer className="site-footer">
       <a
-        href="hhttps://www.instagram.com/amanshuklxa?utm_source=qr"
+        href="https://www.instagram.com/amanshuklxa?igsh=MWF2dHJzYXpubGp4cg=="
         target="_blank"
         rel="noopener noreferrer"
         className="glowing-link"
