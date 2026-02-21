@@ -8,7 +8,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS setup
 app.use(cors({
   origin: [
     'https://amanshukla-ashy.vercel.app',
@@ -27,22 +26,18 @@ app.use(cors({
 app.options('*', cors());
 app.use(express.json());
 
-// ==================== MEDICINE STORAGE ====================
 let medicines = [];
 let nextId = 1;
 
-// GET all medicines
 app.get('/api/medicines', (req, res) => {
   res.json(medicines);
 });
 
-// POST new medicine
 app.post('/api/medicines', (req, res) => {
   const { name, dosage, frequency, time, phone } = req.body;
   if (!name || !dosage || !frequency || !time) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
-
   const newMedicine = {
     _id: (nextId++).toString(),
     name,
@@ -52,12 +47,10 @@ app.post('/api/medicines', (req, res) => {
     phone: phone || '',
     createdAt: new Date().toISOString()
   };
-
   medicines.push(newMedicine);
   res.status(201).json(newMedicine);
 });
 
-// DELETE medicine
 app.delete('/api/medicines/:id', (req, res) => {
   const id = req.params.id;
   const initialLength = medicines.length;
@@ -68,7 +61,6 @@ app.delete('/api/medicines/:id', (req, res) => {
   res.json({ message: 'Medicine deleted' });
 });
 
-// ==================== AI CHAT ====================
 app.get('/', (req, res) => {
   res.json({ status: 'MediRemind Backend Live 🚀' });
 });
@@ -98,17 +90,14 @@ app.post('/api/ai/chat', async (req, res) => {
   }
 });
 
-// Health check
 app.get('/health', (req, res) => {
   res.json({ status: '✅ Healthy', medicines: medicines.length });
 });
 
-// 404 handler
 app.use((req, res) => {
-  res.status(404).json({ error: 'Yeh route exist nahi karta bhai!', availableRoutes: ['/', '/health', '/api/ai/chat (POST)'] });
+  res.status(404).json({ error: 'Route exist nahi karta bhai!' });
 });
 
 app.listen(PORT, () => {
   console.log(`🚀 Backend running on port ${PORT}`);
 });
-```
