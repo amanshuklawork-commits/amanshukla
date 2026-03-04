@@ -286,7 +286,7 @@ function Hospitals() {
     setError(null);
     
     try {
-      const radius = 5000; // 5km radius – faster response
+      const radius = 5000;
       const query = `
         [out:json][timeout:10];
         (
@@ -297,7 +297,7 @@ function Hospitals() {
       `;
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 sec timeout
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       
       const response = await fetch('https://overpass-api.de/api/interpreter', {
         method: 'POST',
@@ -330,7 +330,6 @@ function Hospitals() {
         const address = tags['addr:full'] || tags.address || 
                        `${tags['addr:street'] || ''} ${tags['addr:housenumber'] || ''}`.trim() || 
                        'Address not available';
-        // Determine type (government/private) – rough heuristic
         let type = 'Private';
         if (tags.operator && (tags.operator.toLowerCase().includes('govt') || tags.operator.toLowerCase().includes('government'))) {
           type = 'Government';
@@ -350,7 +349,6 @@ function Hospitals() {
         };
       }).filter(h => h !== null);
       
-      // Remove duplicates by name (rough)
       const unique = [];
       const seen = new Set();
       hospitalsList.forEach(h => {
@@ -378,7 +376,7 @@ function Hospitals() {
     if (userLocation) {
       fetchHospitals();
     }
-  }, [userLocation]);
+  }, [userLocation]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371;
