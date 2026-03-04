@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const Groq = require('groq-sdk');
+const https = require('https');
 
 dotenv.config();
 
@@ -26,6 +27,25 @@ app.use(cors({
 app.options('*', cors());
 app.use(express.json());
 
+// ==================== TELEGRAM HELPER ====================
+function sendTelegramMessage(chatId, message) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token || !chatId) {
+    console.log('Telegram: token ya chatId missing');
+    return;
+  }
+
+  const text = encodeURIComponent(message);
+  const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${text}&parse_mode=HTML`;
+
+  https.get(url, (res) => {
+    console.log('Telegram status:', res.statusCode);
+  }).on('error', (err) => {
+    console.error('Telegram error:', err.message);
+  });
+}
+
+// ==================== MEDICINE STORAGE ====================
 let medicines = [];
 let nextId = 1;
 
@@ -34,10 +54,11 @@ app.get('/api/medicines', (req, res) => {
 });
 
 app.post('/api/medicines', (req, res) => {
-  const { name, dosage, frequency, time, phone } = req.body;
+  const { name, dosage, frequency, time, phone, telegramChatId } = req.body;
   if (!name || !dosage || !frequency || !time) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
+
   const newMedicine = {
     _id: (nextId++).toString(),
     name,
@@ -45,9 +66,21 @@ app.post('/api/medicines', (req, res) => {
     frequency,
     time: Array.isArray(time) ? time : [time],
     phone: phone || '',
+    telegramChatId: telegramChatId || '',
     createdAt: new Date().toISOString()
   };
+
   medicines.push(newMedicine);
+
+  // Telegram notification — frontend se aaya chatId ya env se
+  const chatId = telegramChatId || process.env.TELEGRAM_CHAT_ID;
+  if (chatId) {
+    sendTelegramMessage(
+      chatId,
+      `✅ <b>Medicine Added!</b>\n💊 <b>${name}</b> - ${dosage}\n⏰ Time: ${Array.isArray(time) ? time.join(', ') : time}\n📅 Frequency: ${frequency}`
+    );
+  }
+
   res.status(201).json(newMedicine);
 });
 
@@ -61,6 +94,26 @@ app.delete('/api/medicines/:id', (req, res) => {
   res.json({ message: 'Medicine deleted' });
 });
 
+// ==================== REMINDER CHECKER ====================
+setInterval(() => {
+  const now = new Date();
+  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+  medicines.forEach(med => {
+    const times = Array.isArray(med.time) ? med.time : [med.time];
+    if (times.includes(currentTime)) {
+      const chatId = med.telegramChatId || process.env.TELEGRAM_CHAT_ID;
+      if (chatId) {
+        sendTelegramMessage(
+          chatId,
+          `🔔 <b>Medicine Reminder!</b>\n💊 Time to take <b>${med.name}</b>\n📏 Dosage: ${med.dosage}\n\nStay healthy! 💪`
+        );
+      }
+    }
+  });
+}, 60000);
+
+// ==================== AI CHAT ====================
 app.get('/', (req, res) => {
   res.json({ status: 'MediRemind Backend Live 🚀' });
 });

@@ -1,98 +1,89 @@
 import React, { useState, useEffect } from 'react';
-import { getMedicines } from '../utils/api';
 
 const styles = `
   .stats-wrap {
     min-height: calc(100vh - 68px);
-    padding: 36px 28px;
-    max-width: 1000px;
+    padding: 40px 28px;
+    max-width: 1200px;
     margin: 0 auto;
-    z-index: 1;
-    position: relative;
+  }
+
+  .stats-header {
+    margin-bottom: 40px;
+    animation: fadeUp 0.5s ease;
   }
 
   .stats-title {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: 900;
-    color: #f1f5f9;
-    letter-spacing: -1px;
-    margin-bottom: 6px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
   }
 
   .stats-title span {
-    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    background: linear-gradient(135deg, #10b981, #059669);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
-  .stats-cards {
+  .cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-    margin-bottom: 32px;
-    animation: fadeUp 0.5s ease 0.1s both;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+    animation: fadeUp 0.6s ease 0.2s both;
   }
 
-  .stat-box {
-    background: rgba(255,255,255,0.025);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 18px;
-    padding: 22px;
-    text-align: center;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .stat-box::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 2px;
-    background: var(--color);
-  }
-
-  .stat-box:hover {
-    transform: translateY(-3px);
-    background: rgba(255,255,255,0.04);
-  }
-
-  .stat-box .s-icon { font-size: 1.8rem; margin-bottom: 10px; display: block; }
-  .stat-box .s-num {
-    font-size: 2rem;
-    font-weight: 900;
-    font-family: 'Space Mono', monospace;
-    color: var(--color);
-    display: block;
-    margin-bottom: 4px;
-  }
-  .stat-box .s-label { font-size: 0.78rem; color: #475569; }
-
-  .chart-section {
-    background: rgba(255,255,255,0.025);
-    border: 1px solid rgba(255,255,255,0.07);
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
     border-radius: 20px;
     padding: 24px;
-    margin-bottom: 24px;
-    animation: fadeUp 0.5s ease 0.15s both;
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover {
+    background: var(--card-hover-bg);
+    transform: translateY(-4px);
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .stat-value {
+    font-size: 2.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #10b981, #059669);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .chart-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 30px;
+    animation: fadeUp 0.7s ease 0.3s both;
   }
 
   .chart-title {
-    font-size: 1rem;
+    font-size: 1.3rem;
     font-weight: 800;
-    color: #f1f5f9;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    color: var(--text-primary);
+    margin-bottom: 24px;
   }
 
   .bar-chart {
     display: flex;
     align-items: flex-end;
-    gap: 8px;
-    height: 160px;
-    padding: 0 8px;
+    gap: 16px;
+    height: 250px;
+    padding: 20px 0;
   }
 
   .bar-item {
@@ -100,168 +91,311 @@ const styles = `
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    height: 100%;
-    justify-content: flex-end;
+    gap: 12px;
   }
 
   .bar {
     width: 100%;
+    background: linear-gradient(180deg, #10b981, #059669);
     border-radius: 8px 8px 0 0;
-    background: linear-gradient(to top, #6366f1, #06b6d4);
-    transition: height 1s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 0 12px rgba(99,102,241,0.3);
-    min-height: 4px;
+    transition: all 0.5s ease;
+    position: relative;
+  }
+
+  .bar:hover {
+    filter: brightness(1.2);
+  }
+
+  .bar-value {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: 800;
+    color: var(--text-primary);
+    font-size: 0.9rem;
   }
 
   .bar-label {
-    font-size: 0.7rem;
-    color: #334155;
-    text-align: center;
-    font-family: 'Space Mono', monospace;
-  }
-
-  .adherence-section {
-    background: rgba(255,255,255,0.025);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 20px;
-    padding: 24px;
-    animation: fadeUp 0.5s ease 0.2s both;
-  }
-
-  .adherence-title {
-    font-size: 1rem;
-    font-weight: 800;
-    color: #f1f5f9;
-    margin-bottom: 20px;
-  }
-
-  .adherence-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 14px;
-  }
-
-  .adherence-name {
     font-size: 0.85rem;
-    color: #94a3b8;
-    min-width: 130px;
+    color: var(--text-secondary);
     font-weight: 600;
   }
 
-  .adherence-bar-bg {
+  .meds-list {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 28px;
+    animation: fadeUp 0.8s ease 0.4s both;
+  }
+
+  .list-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+  }
+
+  .med-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+
+  .med-info {
     flex: 1;
-    height: 8px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 999px;
-    overflow: hidden;
   }
 
-  .adherence-bar-fill {
-    height: 100%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #6366f1, #10b981);
-    transition: width 1s ease;
-    box-shadow: 0 0 8px rgba(99,102,241,0.4);
+  .med-name-stat {
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 4px;
   }
 
-  .adherence-pct {
-    font-size: 0.78rem;
-    font-family: 'Space Mono', monospace;
+  .med-detail-stat {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .adherence-badge {
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.9rem;
+  }
+
+  .badge-high {
+    background: rgba(16, 185, 129, 0.1);
     color: #10b981;
-    min-width: 40px;
-    text-align: right;
-    font-weight: 700;
+  }
+
+  .badge-medium {
+    background: rgba(251, 146, 60, 0.1);
+    color: #fb923c;
+  }
+
+  .badge-low {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+
+  .loading-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-tertiary);
+  }
+
+  .spinner {
+    border: 4px solid rgba(16,185,129,0.1);
+    border-left-color: #10b981;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  @media (max-width: 768px) {
+    .stats-title { font-size: 2rem; }
+    .bar-chart { height: 200px; gap: 12px; }
+  }
 `;
 
-const DAYS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const MOCK_DATA = [85, 100, 70, 90, 100, 60, 95];
-
 function HealthStats() {
-  const [medicines, setMedicines] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    avgAdherence: 0,
+    totalMeds: 0,
+    avgWater: '0L',
+    streak: 0,
+    weeklyData: [],
+    medicines: []
+  });
 
+  // Load data from localStorage
   useEffect(() => {
-    getMedicines().then(res => setMedicines(res.data)).catch(() => {});
+    try {
+      // 1. Water log from WaterTracker
+      const waterLog = JSON.parse(localStorage.getItem('waterLog') || '[]');
+      
+      // Calculate average water (last 7 days)
+      const last7Days = waterLog.slice(0, 7); // log is already newest first
+      let totalWater = 0;
+      last7Days.forEach(entry => {
+        if (entry.amount) totalWater += entry.amount;
+      });
+      const avgWaterMl = last7Days.length > 0 ? totalWater / last7Days.length : 0;
+      const avgWaterL = (avgWaterMl / 1000).toFixed(1) + 'L';
+
+      // Streak days: consecutive days with water entry
+      let streak = 0;
+      if (waterLog.length > 0) {
+        const today = new Date().toLocaleDateString('en-CA');
+        const logDates = waterLog.map(e => new Date(e.time).toLocaleDateString('en-CA'));
+        const uniqueDates = [...new Set(logDates)];
+        uniqueDates.sort().reverse(); // latest first
+        let lastDate = today;
+        for (let d of uniqueDates) {
+          if (d === lastDate) {
+            streak++;
+            // move to previous day
+            const prev = new Date(lastDate);
+            prev.setDate(prev.getDate() - 1);
+            lastDate = prev.toLocaleDateString('en-CA');
+          } else {
+            break;
+          }
+        }
+      }
+
+      // 2. Family medicines count
+      const familyMeds = JSON.parse(localStorage.getItem('familyMedicines') || '{}');
+      let totalMeds = 0;
+      const medicinesList = [];
+      Object.keys(familyMeds).forEach(member => {
+        totalMeds += familyMeds[member].length;
+        // Collect all medicines for display
+        familyMeds[member].forEach(med => {
+          medicinesList.push({
+            name: med.name,
+            frequency: med.frequency,
+            adherence: 100 // default, can be updated later with taken marks
+          });
+        });
+      });
+
+      // 3. Calendar data for weekly chart (last 7 days)
+      const calendar = JSON.parse(localStorage.getItem('medicineCalendar') || '{}');
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const today = new Date();
+      const weeklyData = [];
+      
+      // Get last 7 days (including today)
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateKey = `${year}-${month}-${day}`;
+        const dayName = days[date.getDay()];
+        const medCount = calendar[dateKey] ? calendar[dateKey].length : 0;
+        weeklyData.push({
+          day: dayName,
+          value: medCount,
+          fullDate: dateKey
+        });
+      }
+
+      setStats({
+        avgAdherence: 95, // placeholder – later can be computed from taken marks
+        totalMeds,
+        avgWater: avgWaterL,
+        streak,
+        weeklyData,
+        medicines: medicinesList
+      });
+    } catch (e) {
+      console.error('Error loading stats:', e);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const totalReminders = medicines.reduce((acc, m) =>
-    acc + (Array.isArray(m.time) ? m.time.length : 1), 0);
+  const getAdherenceBadge = (value) => {
+    if (value >= 95) return 'badge-high';
+    if (value >= 85) return 'badge-medium';
+    return 'badge-low';
+  };
+
+  if (loading) {
+    return (
+      <>
+        <style>{styles}</style>
+        <div className="stats-wrap">
+          <div className="loading-state">
+            <div className="spinner"></div>
+            <p>Loading your health stats...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
       <style>{styles}</style>
       <div className="stats-wrap">
-        <div style={{ marginBottom: '28px', animation: 'fadeUp 0.5s ease' }}>
-          <div className="stats-title">📈 Health <span>Stats</span></div>
-          <div style={{ color: '#475569', fontSize: '0.88rem' }}>Your health analytics and insights</div>
+        <div className="stats-header">
+          <h1 className="stats-title">Health <span>Statistics</span></h1>
         </div>
 
-        <div className="stats-cards">
-          <div className="stat-box" style={{ '--color': '#6366f1' }}>
-            <span className="s-icon">💊</span>
-            <span className="s-num">{medicines.length}</span>
-            <span className="s-label">Total Medicines</span>
+        <div className="cards-grid">
+          <div className="stat-card">
+            <div className="stat-label">Average Adherence</div>
+            <div className="stat-value">{stats.avgAdherence}%</div>
           </div>
-          <div className="stat-box" style={{ '--color': '#06b6d4' }}>
-            <span className="s-icon">⏰</span>
-            <span className="s-num">{totalReminders}</span>
-            <span className="s-label">Daily Reminders</span>
+          <div className="stat-card">
+            <div className="stat-label">Total Medicines</div>
+            <div className="stat-value">{stats.totalMeds}</div>
           </div>
-          <div className="stat-box" style={{ '--color': '#10b981' }}>
-            <span className="s-icon">✅</span>
-            <span className="s-num">87%</span>
-            <span className="s-label">Adherence Rate</span>
+          <div className="stat-card">
+            <div className="stat-label">Water Intake (Avg)</div>
+            <div className="stat-value">{stats.avgWater}</div>
           </div>
-          <div className="stat-box" style={{ '--color': '#f59e0b' }}>
-            <span className="s-icon">🔥</span>
-            <span className="s-num">7</span>
-            <span className="s-label">Day Streak</span>
-          </div>
-          <div className="stat-box" style={{ '--color': '#a855f7' }}>
-            <span className="s-icon">💧</span>
-            <span className="s-num">1.8L</span>
-            <span className="s-label">Avg Water</span>
+          <div className="stat-card">
+            <div className="stat-label">Streak Days</div>
+            <div className="stat-value">{stats.streak}</div>
           </div>
         </div>
 
         <div className="chart-section">
-          <div className="chart-title">📊 Weekly Medicine Adherence</div>
+          <h3 className="chart-title">Weekly Medicines Scheduled</h3>
           <div className="bar-chart">
-            {DAYS_SHORT.map((day, i) => (
-              <div key={i} className="bar-item">
-                <div className="bar" style={{ height: `${MOCK_DATA[i]}%` }}></div>
-                <div className="bar-label">{day}</div>
+            {stats.weeklyData.map((item) => (
+              <div key={item.day} className="bar-item">
+                <div className="bar" style={{ height: `${Math.min(100, item.value * 10)}%` }}>
+                  <div className="bar-value">{item.value}</div>
+                </div>
+                <div className="bar-label">{item.day}</div>
               </div>
             ))}
           </div>
+          <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', marginTop: '10px' }}>
+            Number of medicines scheduled per day (last 7 days)
+          </p>
         </div>
 
-        <div className="adherence-section">
-          <div className="adherence-title">💊 Per Medicine Adherence</div>
-          {medicines.length === 0 ? (
-            <div style={{ color: '#334155', textAlign: 'center', padding: '30px' }}>
-              Koi medicines nahi hain! <a href="/add" style={{ color: '#818cf8' }}>Add karo →</a>
+        <div className="meds-list">
+          <h3 className="list-title">All Medicines (from Family)</h3>
+          {stats.medicines.length > 0 ? stats.medicines.map((med, i) => (
+            <div key={i} className="med-item">
+              <div className="med-info">
+                <div className="med-name-stat">{med.name}</div>
+                <div className="med-detail-stat">{med.frequency}</div>
+              </div>
+              <div className={`adherence-badge ${getAdherenceBadge(med.adherence)}`}>
+                {med.adherence}%
+              </div>
             </div>
-          ) : (
-            medicines.map((med, i) => {
-              const pct = Math.floor(Math.random() * 30 + 70);
-              return (
-                <div key={i} className="adherence-row">
-                  <div className="adherence-name">💊 {med.name}</div>
-                  <div className="adherence-bar-bg">
-                    <div className="adherence-bar-fill" style={{ width: `${pct}%` }}></div>
-                  </div>
-                  <div className="adherence-pct">{pct}%</div>
-                </div>
-              );
-            })
+          )) : (
+            <div className="empty-state" style={{ textAlign: 'center', padding: '30px', color: 'var(--text-tertiary)' }}>
+              <p>No medicines added in Family yet.</p>
+            </div>
           )}
         </div>
       </div>
