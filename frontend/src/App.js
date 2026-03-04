@@ -1,35 +1,38 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Chatbot from './components/Chatbot';
+import './App.css';
+import Footer from './components/Footer'; // Footer import kiya
+
+// Pages
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
-import AddMedicine from './pages/AddMedicine';
-import Hospitals from './pages/Hospitals_GPS';
-import Emergency from './pages/Emergency';
 import Calendar from './pages/Calendar';
-import WaterTracker from './pages/WaterTracker_Full';
-import SymptomsTracker from './pages/SymptomsTracker_Full';
-import HealthStats from './pages/HealthStats';
+import Emergency from './pages/Emergency';
 import Family from './pages/Family';
+import HealthStats from './pages/HealthStats';
+import HospitalsGPS from './pages/Hospitals_GPS';
+import WaterTrackerFull from './pages/WaterTracker_Full';
+import SymptomsTrackerFull from './pages/SymptomsTracker_Full';
+import AddMedicine from './pages/AddMedicine';
 
 function App() {
   return (
     <Router>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/add" element={<AddMedicine />} />
-        <Route path="/hospitals" element={<Hospitals />} />
-        <Route path="/emergency" element={<Emergency />} />
-        <Route path="/calendar" element={<Calendar />} />
-        <Route path="/water" element={<WaterTracker />} />
-        <Route path="/symptoms" element={<SymptomsTracker />} />
-        <Route path="/stats" element={<HealthStats />} />
-        <Route path="/family" element={<Family />} />
-      </Routes>
-      <Chatbot />
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/emergency" element={<Emergency />} />
+          <Route path="/family" element={<Family />} />
+          <Route path="/health-stats" element={<HealthStats />} />
+          <Route path="/hospitals" element={<HospitalsGPS />} />
+          <Route path="/water-tracker" element={<WaterTrackerFull />} />
+          <Route path="/symptoms" element={<SymptomsTrackerFull />} />
+          <Route path="/add-medicine" element={<AddMedicine />} />
+        </Routes>
+        <Footer /> {/* Yahan footer add kiya */}
+      </div>
     </Router>
   );
 }
