@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const Groq = require('groq-sdk');
-const https = require('https');
+const axios = require('axios');
 
 dotenv.config();
 
@@ -28,40 +28,24 @@ app.options('*', cors());
 app.use(express.json());
 
 // ==================== NTFY NOTIFICATION HELPER ====================
-function sendNtfyNotification({ topic, title, message, priority = 'high', tags = ['pill'] }) {
+async function sendNtfyNotification({ topic, title, message, priority = 'high' }) {
   if (!topic) {
     console.log('Ntfy: topic missing, skipping notification');
     return;
   }
-
-  const body = JSON.stringify({ 
-    topic: topic,
-    message: message,
-    title: title,
-    priority: priority
-  });
-
-  const options = {
-    hostname: 'ntfy.sh',
-    port: 443,
-    path: '/',
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(body)
-    }
-  };
-
-  const req = https.request(options, (res) => {
-    console.log(`Ntfy notification sent! Status: ${res.statusCode} | Topic: ${topic}`);
-  });
-
-  req.on('error', (err) => {
-    console.error('Ntfy error:', err.message);
-  });
-
-  req.write(body);
-  req.end();
+  try {
+    const res = await axios.post('https://ntfy.sh/', {
+      topic,
+      title,
+      message,
+      priority
+    }, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    console.log(`Ntfy notification sent! Status: ${res.status} | Topic: ${topic}`);
+  } catch (err) {
+    console.error('Ntfy error:', err.response ? err.response.data : err.message);
+  }
 }
 
 // ==================== MEDICINE STORAGE ====================
@@ -97,10 +81,9 @@ app.post('/api/medicines', (req, res) => {
   if (ntfyTopic) {
     sendNtfyNotification({
       topic: ntfyTopic,
-      title: '✅ Medicine Added — MediRemind',
-      message: `💊 ${name} (${dosage}) added successfully!\n⏰ Reminder set for: ${Array.isArray(time) ? time.join(', ') : time}\n📅 Frequency: ${frequency}\n\nStay healthy! 💪`,
-      priority: 'default',
-      tags: ['pill', 'white_check_mark']
+      title: 'Medicine Added - MediRemind',
+      message: `${name} (${dosage}) added! Reminder set for: ${Array.isArray(time) ? time.join(', ') : time}. Frequency: ${frequency}`,
+      priority: 'default'
     });
   }
 
@@ -127,14 +110,12 @@ setInterval(() => {
 
   medicines.forEach(med => {
     const times = Array.isArray(med.time) ? med.time : [med.time];
-
     if (times.includes(currentTime) && med.ntfyTopic) {
       sendNtfyNotification({
         topic: med.ntfyTopic,
-        title: '🔔 Medicine Reminder — MediRemind',
-        message: `💊 Time to take ${med.name}!\n📏 Dosage: ${med.dosage}\n📅 Frequency: ${med.frequency}\n\nDon't skip your dose! Stay healthy 💪`,
-        priority: 'urgent',
-        tags: ['rotating_light', 'pill']
+        title: 'Medicine Reminder - MediRemind',
+        message: `Time to take ${med.name}! Dosage: ${med.dosage}. Don't skip your dose!`,
+        priority: 'urgent'
       });
     }
   });
@@ -150,10 +131,7 @@ app.post('/api/ai/chat', async (req, res) => {
 
     const completion = await groq.chat.completions.create({
       messages: [
-        {
-          role: 'system',
-          content: 'Tu ek helpful health assistant hai. Hinglish mein jawab de. Short aur clear rakho.'
-        },
+        { role: 'system', content: 'Tu ek helpful health assistant hai. Hinglish mein jawab de. Short aur clear rakho.' },
         { role: 'user', content: message }
       ],
       model: 'llama-3.3-70b-versatile',
