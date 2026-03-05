@@ -38,8 +38,7 @@ function sendNtfyNotification({ topic, title, message, priority = 'high', tags =
     topic: topic,
     message: message,
     title: title,
-    priority: priority,
-    tags: tags
+    priority: priority
   });
 
   const options = {
