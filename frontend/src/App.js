@@ -1,7 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
-import Footer from './components/Footer'; // Footer import kiya
+import Footer from './components/Footer';
+import { ThemeProvider } from './context/ThemeContext';
 
 // Pages
 import Home from './pages/Home';
@@ -17,23 +18,25 @@ import AddMedicine from './pages/AddMedicine';
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/emergency" element={<Emergency />} />
-          <Route path="/family" element={<Family />} />
-          <Route path="/health-stats" element={<HealthStats />} />
-          <Route path="/hospitals" element={<HospitalsGPS />} />
-          <Route path="/water-tracker" element={<WaterTrackerFull />} />
-          <Route path="/symptoms" element={<SymptomsTrackerFull />} />
-          <Route path="/add-medicine" element={<AddMedicine />} />
-        </Routes>
-        <Footer /> {/* Yahan footer add kiya */}
-      </div>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <div className="App">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/emergency" element={<Emergency />} />
+            <Route path="/family" element={<Family />} />
+            <Route path="/health-stats" element={<HealthStats />} />
+            <Route path="/hospitals" element={<HospitalsGPS />} />
+            <Route path="/water-tracker" element={<WaterTrackerFull />} />
+            <Route path="/symptoms" element={<SymptomsTrackerFull />} />
+            <Route path="/add-medicine" element={<AddMedicine />} />
+          </Routes>
+          <Footer />
+        </div>
+      </Router>
+    </ThemeProvider>
   );
 }
 
