@@ -34,16 +34,22 @@ function sendNtfyNotification({ topic, title, message, priority = 'high', tags =
     return;
   }
 
+  const body = JSON.stringify({ 
+    topic: topic,
+    message: message,
+    title: title,
+    priority: priority,
+    tags: tags
+  });
+
   const options = {
     hostname: 'ntfy.sh',
     port: 443,
-    path: `/${topic}`,
+    path: '/',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Title': title,
-      'Priority': priority,
-      'Tags': tags.join(',')
+      'Content-Length': Buffer.byteLength(body)
     }
   };
 
@@ -55,7 +61,7 @@ function sendNtfyNotification({ topic, title, message, priority = 'high', tags =
     console.error('Ntfy error:', err.message);
   });
 
-  req.write(message);
+  req.write(body);
   req.end();
 }
 
