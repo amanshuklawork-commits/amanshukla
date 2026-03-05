@@ -363,7 +363,6 @@ function Home() {
     medicines: 0, features: 0, accuracy: 0, aiSupport: 0
   });
 
-  // ── CANVAS STARS ──────────────────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -398,12 +397,9 @@ function Home() {
 
     function draw(now) {
       const parallax = scrollYRef.current * 0.12;
-
-      // Dark background drawn on canvas itself
       ctx.fillStyle = '#030306';
       ctx.fillRect(0, 0, width, height);
 
-      // Stars
       stars.forEach(s => {
         const alpha = 0.25 + 0.75 * (0.5 + 0.5 * Math.sin(now * s.speed + s.phase));
         const yPos  = ((s.y - parallax) % height + height) % height;
@@ -413,7 +409,6 @@ function Home() {
         ctx.fill();
       });
 
-      // Shooting star spawn
       if (now - lastShot > 5000) spawnShootingStar(now);
 
       if (shootingStar) {
@@ -441,7 +436,6 @@ function Home() {
           ctx.lineWidth   = 2;
           ctx.stroke();
 
-          // Glow head
           ctx.beginPath();
           ctx.arc(sx, sy, 2.5, 0, Math.PI * 2);
           ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(2)})`;
@@ -470,7 +464,6 @@ function Home() {
     };
   }, []);
 
-  // ── STATS COUNTER ─────────────────────────────────────────
   useEffect(() => {
     const targets = { medicines: 2847, features: 8, accuracy: 99, aiSupport: 24 };
 
@@ -497,15 +490,16 @@ function Home() {
     return () => { clearInterval(med); clearInterval(feat); clearInterval(acc); clearInterval(ai); };
   }, []);
 
+  // ✅ ALL ROUTES FIXED
   const features = [
-    { icon: '💊', title: 'Medicine Tracker',   desc: 'Add, manage and track all your daily medications with smart reminders',          color: 'c1', link: '/dashboard' },
-    { icon: '🏥', title: 'Nearby Hospitals',    desc: 'Find hospitals, clinics and pharmacies near your location instantly',             color: 'c2', link: '/hospitals' },
-    { icon: '📅', title: 'Medicine Calendar',   desc: 'Visual calendar view of your complete medication schedule',                      color: 'c3', link: '/calendar'  },
-    { icon: '🚨', title: 'Emergency Contacts',  desc: 'Quick access to emergency contacts and SOS calling feature',                     color: 'c5', link: '/emergency' },
-    { icon: '📈', title: 'Health Stats',        desc: 'Charts and analytics of your health and medication adherence',                   color: 'c4', link: '/stats'     },
-    { icon: '💧', title: 'Water Tracker',       desc: 'Track daily water intake and stay hydrated for better health',                   color: 'c6', link: '/water'     },
-    { icon: '🌡️', title: 'Symptoms Tracker',   desc: 'Log and monitor your symptoms with AI-powered insights',                         color: 'c7', link: '/symptoms'  },
-    { icon: '👨‍👩‍👧', title: 'Family Medicines', desc: 'Manage medications for your entire family in one place',                     color: 'c8', link: '/family'    },
+    { icon: '💊', title: 'Medicine Tracker',   desc: 'Add, manage and track all your daily medications with smart reminders',        color: 'c1', link: '/dashboard'    },
+    { icon: '🏥', title: 'Nearby Hospitals',   desc: 'Find hospitals, clinics and pharmacies near your location instantly',           color: 'c2', link: '/hospitals'    },
+    { icon: '📅', title: 'Medicine Calendar',  desc: 'Visual calendar view of your complete medication schedule',                    color: 'c3', link: '/calendar'     },
+    { icon: '🚨', title: 'Emergency Contacts', desc: 'Quick access to emergency contacts and SOS calling feature',                   color: 'c5', link: '/emergency'    },
+    { icon: '📈', title: 'Health Stats',       desc: 'Charts and analytics of your health and medication adherence',                 color: 'c4', link: '/health-stats' },
+    { icon: '💧', title: 'Water Tracker',      desc: 'Track daily water intake and stay hydrated for better health',                 color: 'c6', link: '/water-tracker'},
+    { icon: '🌡️', title: 'Symptoms Tracker',  desc: 'Log and monitor your symptoms with AI-powered insights',                       color: 'c7', link: '/symptoms'     },
+    { icon: '👨‍👩‍👧', title: 'Family Medicines', desc: 'Manage medications for your entire family in one place',                   color: 'c8', link: '/family'       },
   ];
 
   return (
@@ -531,8 +525,9 @@ function Home() {
           </p>
 
           <div className="hero-btns">
-            <Link to="/add"       className="btn-glow primary">➕ Add Medicine</Link>
-            <Link to="/dashboard" className="btn-glow secondary">📋 View Dashboard</Link>
+            {/* ✅ FIXED */}
+            <Link to="/add-medicine" className="btn-glow primary">➕ Add Medicine</Link>
+            <Link to="/dashboard"    className="btn-glow secondary">📋 View Dashboard</Link>
           </div>
 
           <div className="stats-band">
