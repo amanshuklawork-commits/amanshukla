@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const BASE = process.env.REACT_APP_API_URL || 'https://amanshukla.onrender.com';
 
@@ -19,8 +20,6 @@ function Dashboard() {
       setDebugInfo('');
       
       const response = await fetch(BASE + '/api/medicines');
-      
-      // Try to get the response text first (in case it's not JSON)
       const responseText = await response.text();
       console.log('Raw response:', responseText);
       
@@ -28,12 +27,10 @@ function Dashboard() {
       try {
         data = JSON.parse(responseText);
       } catch (e) {
-        // If it's not JSON, show the raw HTML/text
         setDebugInfo('Server returned non-JSON: ' + responseText.substring(0, 200));
         throw new Error('Invalid JSON response from server');
       }
 
-      // Now try to extract medicines array
       let medicinesArray = [];
       if (Array.isArray(data)) {
         medicinesArray = data;
@@ -113,7 +110,6 @@ function Dashboard() {
     );
   }
 
-  // ... rest of your component (the same as before)
   return (
     <>
       <style>{`
@@ -271,7 +267,8 @@ function Dashboard() {
             <div className="empty-icon">💊</div>
             <div className="empty-title">Koi medicine nahi hai abhi!</div>
             <div className="empty-sub">
-              <a href="/add">+ Add Medicine</a> karke shuru karo!
+              {/* ✅ FIXED: /add → /add-medicine */}
+              <Link to="/add-medicine">+ Add Medicine</Link> karke shuru karo!
             </div>
           </div>
         ) : (
