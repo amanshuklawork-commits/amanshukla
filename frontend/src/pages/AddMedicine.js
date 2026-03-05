@@ -108,7 +108,20 @@ const styles = `
     box-shadow: 0 0 0 4px rgba(99,102,241,0.08), 0 0 20px rgba(99,102,241,0.1);
   }
 
-  .field-hint { font-size: 0.73rem; color: #334155; padding-left: 2px; }
+  .field-hint {
+    font-size: 0.73rem;
+    color: #334155;
+    padding-left: 2px;
+  }
+
+  .ntfy-hint {
+    font-size: 0.73rem;
+    color: #6366f1;
+    padding-left: 2px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
 
   .freq-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 
@@ -136,53 +149,6 @@ const styles = `
     background: rgba(99,102,241,0.15);
     border-color: rgba(99,102,241,0.4);
     color: #818cf8;
-  }
-
-  .phone-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-
-  .country-select {
-    width: 130px;
-    padding: 14px 12px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px;
-    color: #f1f5f9;
-    font-size: 0.9rem;
-    font-family: 'Outfit', sans-serif;
-    outline: none;
-    cursor: pointer;
-  }
-
-  .country-select option {
-    background: #0a0a0f;
-    color: #f1f5f9;
-  }
-
-  .phone-input {
-    flex: 1;
-    min-width: 180px;
-    padding: 14px 18px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px;
-    color: #f1f5f9;
-    font-size: 0.95rem;
-    font-family: 'Outfit', sans-serif;
-    transition: all 0.3s ease;
-    outline: none;
-  }
-
-  .phone-input::placeholder { color: #334155; }
-
-  .phone-input:focus {
-    border-color: rgba(99,102,241,0.5);
-    background: rgba(99,102,241,0.04);
-    box-shadow: 0 0 0 4px rgba(99,102,241,0.08);
   }
 
   .submit-wrap { margin-top: 8px; }
@@ -298,6 +264,49 @@ const styles = `
 
   .tip-item .tip-icon { font-size: 1rem; flex-shrink: 0; }
 
+  .ntfy-setup-box {
+    background: rgba(99,102,241,0.05);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-top: 4px;
+  }
+
+  .ntfy-setup-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #818cf8;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ntfy-step {
+    font-size: 0.78rem;
+    color: #64748b;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+  }
+
+  .ntfy-step-num {
+    background: rgba(99,102,241,0.2);
+    color: #818cf8;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
   .toast {
     position: fixed;
     bottom: 28px;
@@ -332,26 +341,13 @@ const FREQUENCIES = [
   'Every 8 hours', 'Before meals', 'After meals', 'At bedtime'
 ];
 
-const COUNTRY_CODES = [
-  { code: '+91', country: 'India', flag: '🇮🇳' },
-  { code: '+1', country: 'USA', flag: '🇺🇸' },
-  { code: '+44', country: 'UK', flag: '🇬🇧' },
-  { code: '+61', country: 'Australia', flag: '🇦🇺' },
-  { code: '+1', country: 'Canada', flag: '🇨🇦' },
-  { code: '+65', country: 'Singapore', flag: '🇸🇬' },
-  { code: '+971', country: 'UAE', flag: '🇦🇪' },
-  { code: '+49', country: 'Germany', flag: '🇩🇪' },
-  { code: '+33', country: 'France', flag: '🇫🇷' },
-];
-
 function AddMedicine() {
   const [form, setForm] = useState({
     name: '',
     dosage: '',
     frequency: '',
     time: '',
-    phoneCountry: '+91',
-    phoneNumber: ''
+    ntfyTopic: ''
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -365,8 +361,7 @@ function AddMedicine() {
     setLoading(true);
     try {
       var times = form.time.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
-      // Combine phone country code and number if present
-      var fullPhone = form.phoneNumber ? form.phoneCountry + form.phoneNumber : '';
+
       var response = await fetch(BASE + '/api/medicines', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -375,20 +370,14 @@ function AddMedicine() {
           dosage: form.dosage,
           frequency: form.frequency,
           time: times,
-          phone: fullPhone  // send phone number to backend
+          ntfyTopic: form.ntfyTopic.trim()
         })
       });
+
       if (!response.ok) throw new Error('Failed');
 
       setSuccess(true);
-      setForm({
-        name: '',
-        dosage: '',
-        frequency: '',
-        time: '',
-        phoneCountry: '+91',
-        phoneNumber: ''
-      });
+      setForm({ name: '', dosage: '', frequency: '', time: '', ntfyTopic: '' });
       setTimeout(function() { setSuccess(false); }, 3500);
     } catch (err) {
       alert('Error adding medicine! Please try again.');
@@ -406,20 +395,24 @@ function AddMedicine() {
           <div className="add-subtitle">Track a new medication in your daily schedule</div>
 
           <form className="med-form" onSubmit={handleSubmit}>
+
+            {/* Medicine Name */}
             <div className="field-wrap">
-              <label className="field-label">Medicine Name</label>
+              <label className="field-label">💊 Medicine Name</label>
               <input className="field-input" type="text" placeholder="e.g. Paracetamol, Vitamin D..."
                 value={form.name} onChange={function(e) { setForm({ ...form, name: e.target.value }); }} required />
             </div>
 
+            {/* Dosage */}
             <div className="field-wrap">
-              <label className="field-label">Dosage</label>
+              <label className="field-label">📏 Dosage</label>
               <input className="field-input" type="text" placeholder="e.g. 500mg, 1 tablet..."
                 value={form.dosage} onChange={function(e) { setForm({ ...form, dosage: e.target.value }); }} required />
             </div>
 
+            {/* Frequency */}
             <div className="field-wrap">
-              <label className="field-label">Frequency</label>
+              <label className="field-label">📅 Frequency</label>
               <input className="field-input" type="text" placeholder="e.g. 2 times daily..."
                 value={form.frequency} onChange={function(e) { setForm({ ...form, frequency: e.target.value }); }} required />
               <div className="freq-chips">
@@ -435,49 +428,52 @@ function AddMedicine() {
               </div>
             </div>
 
+            {/* Reminder Times */}
             <div className="field-wrap">
-              <label className="field-label">Reminder Times</label>
+              <label className="field-label">⏰ Reminder Times</label>
               <input className="field-input" type="text" placeholder="e.g. 08:00, 14:00, 20:00"
                 value={form.time} onChange={function(e) { setForm({ ...form, time: e.target.value }); }} required />
               <span className="field-hint">Separate multiple times with commas</span>
             </div>
 
-            {/* Phone Number Field */}
+            {/* Ntfy Topic */}
             <div className="field-wrap">
-              <label className="field-label">📞 Phone Number for SMS Reminders</label>
-              <div className="phone-row">
-                <select
-                  className="country-select"
-                  value={form.phoneCountry}
-                  onChange={function(e) { setForm({ ...form, phoneCountry: e.target.value }); }}
-                >
-                  {COUNTRY_CODES.map(function(c, i) {
-                    return (
-                      <option key={i} value={c.code}>
-                        {c.flag} {c.code} ({c.country})
-                      </option>
-                    );
-                  })}
-                </select>
-                <input
-                  className="phone-input"
-                  type="tel"
-                  placeholder="Enter phone number"
-                  value={form.phoneNumber}
-                  onChange={function(e) { setForm({ ...form, phoneNumber: e.target.value }); }}
-                />
+              <label className="field-label">🔔 Notification Topic</label>
+              <input className="field-input" type="text" placeholder="e.g. my-medicine-reminder-2024"
+                value={form.ntfyTopic} onChange={function(e) { setForm({ ...form, ntfyTopic: e.target.value }); }} />
+              <span className="ntfy-hint">🔗 Get free notifications via ntfy.sh app</span>
+
+              {/* Setup Instructions */}
+              <div className="ntfy-setup-box">
+                <div className="ntfy-setup-title">📲 How to setup (takes 1 min!)</div>
+                <div className="ntfy-step">
+                  <span className="ntfy-step-num">1</span>
+                  <span>Install <strong style={{color:'#818cf8'}}>Ntfy app</strong> on your phone (Android / iOS) — it's free</span>
+                </div>
+                <div className="ntfy-step">
+                  <span className="ntfy-step-num">2</span>
+                  <span>Open app → tap <strong style={{color:'#818cf8'}}>+</strong> → enter any unique topic name (e.g. <strong style={{color:'#818cf8'}}>aman-meds-2024</strong>)</span>
+                </div>
+                <div className="ntfy-step">
+                  <span className="ntfy-step-num">3</span>
+                  <span>Type that same topic name in the field above</span>
+                </div>
+                <div className="ntfy-step">
+                  <span className="ntfy-step-num">4</span>
+                  <span>Done! You'll get push notifications at your reminder times 🎉</span>
+                </div>
               </div>
-              <span className="field-hint">SMS reminders will be sent to this number when medicine time arrives</span>
             </div>
 
             <div className="submit-wrap">
               <button type="submit" className="submit-btn" disabled={loading}>
-                {loading ? <><span className="spinner"></span> Adding...</> : <>Add Medicine</>}
+                {loading ? <><span className="spinner"></span> Adding...</> : <>💊 Add Medicine</>}
               </button>
             </div>
           </form>
         </div>
 
+        {/* Right Side Preview */}
         <div className="add-right">
           <div className="preview-card">
             <div className="preview-label">Live Preview</div>
@@ -486,22 +482,22 @@ function AddMedicine() {
               <div className="preview-row"><strong>Dosage:</strong> {form.dosage || '-'}</div>
               <div className="preview-row"><strong>Frequency:</strong> {form.frequency || '-'}</div>
               <div className="preview-row"><strong>Times:</strong> {form.time || '-'}</div>
-              <div className="preview-row"><strong>Phone:</strong> {form.phoneNumber ? form.phoneCountry + ' ' + form.phoneNumber : '-'}</div>
+              <div className="preview-row"><strong>🔔 Topic:</strong> {form.ntfyTopic || '-'}</div>
             </div>
           </div>
 
           <div className="tips-section">
             <div className="tips-title">Pro Tips</div>
-            <div className="tip-item"><span className="tip-icon">📱</span>Phone number optional – SMS reminders will help you never miss a dose!</div>
+            <div className="tip-item"><span className="tip-icon">🔔</span>Use a unique topic name — like your name + random number</div>
+            <div className="tip-item"><span className="tip-icon">📱</span>Ntfy app works on Android, iOS and PC browser too!</div>
             <div className="tip-item"><span className="tip-icon">⏰</span>Set reminders at consistent times every day</div>
             <div className="tip-item"><span className="tip-icon">💧</span>Always take medicines with a full glass of water</div>
-            <div className="tip-item"><span className="tip-icon">🤖</span>Use AI Health Tips on Dashboard for advice</div>
           </div>
         </div>
       </div>
 
       {success && (
-        <div className="toast">✅ Medicine added successfully!</div>
+        <div className="toast">✅ Medicine added! Notification sent 🔔</div>
       )}
     </>
   );

@@ -27,34 +27,51 @@ app.use(cors({
 app.options('*', cors());
 app.use(express.json());
 
-// ==================== TELEGRAM HELPER ====================
-function sendTelegramMessage(chatId, message) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  if (!token || !chatId) {
-    console.log('Telegram: token ya chatId missing');
+// ==================== NTFY NOTIFICATION HELPER ====================
+function sendNtfyNotification({ topic, title, message, priority = 'high', tags = ['pill'] }) {
+  if (!topic) {
+    console.log('Ntfy: topic missing, skipping notification');
     return;
   }
 
-  const text = encodeURIComponent(message);
-  const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${text}&parse_mode=HTML`;
+  const options = {
+    hostname: 'ntfy.sh',
+    port: 443,
+    path: `/${topic}`,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Title': title,
+      'Priority': priority,
+      'Tags': tags.join(',')
+    }
+  };
 
-  https.get(url, (res) => {
-    console.log('Telegram status:', res.statusCode);
-  }).on('error', (err) => {
-    console.error('Telegram error:', err.message);
+  const req = https.request(options, (res) => {
+    console.log(`Ntfy notification sent! Status: ${res.statusCode} | Topic: ${topic}`);
   });
+
+  req.on('error', (err) => {
+    console.error('Ntfy error:', err.message);
+  });
+
+  req.write(message);
+  req.end();
 }
 
 // ==================== MEDICINE STORAGE ====================
 let medicines = [];
 let nextId = 1;
 
+// GET all medicines
 app.get('/api/medicines', (req, res) => {
   res.json(medicines);
 });
 
+// POST add new medicine
 app.post('/api/medicines', (req, res) => {
-  const { name, dosage, frequency, time, phone, telegramChatId } = req.body;
+  const { name, dosage, frequency, time, ntfyTopic } = req.body;
+
   if (!name || !dosage || !frequency || !time) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
@@ -65,59 +82,60 @@ app.post('/api/medicines', (req, res) => {
     dosage,
     frequency,
     time: Array.isArray(time) ? time : [time],
-    phone: phone || '',
-    telegramChatId: telegramChatId || '',
+    ntfyTopic: ntfyTopic || '',
     createdAt: new Date().toISOString()
   };
 
   medicines.push(newMedicine);
 
-  // Telegram notification — frontend se aaya chatId ya env se
-  const chatId = telegramChatId || process.env.TELEGRAM_CHAT_ID;
-  if (chatId) {
-    sendTelegramMessage(
-      chatId,
-      `✅ <b>Medicine Added!</b>\n💊 <b>${name}</b> - ${dosage}\n⏰ Time: ${Array.isArray(time) ? time.join(', ') : time}\n📅 Frequency: ${frequency}`
-    );
+  // Send "medicine added" notification
+  if (ntfyTopic) {
+    sendNtfyNotification({
+      topic: ntfyTopic,
+      title: '✅ Medicine Added — MediRemind',
+      message: `💊 ${name} (${dosage}) added successfully!\n⏰ Reminder set for: ${Array.isArray(time) ? time.join(', ') : time}\n📅 Frequency: ${frequency}\n\nStay healthy! 💪`,
+      priority: 'default',
+      tags: ['pill', 'white_check_mark']
+    });
   }
 
   res.status(201).json(newMedicine);
 });
 
+// DELETE medicine
 app.delete('/api/medicines/:id', (req, res) => {
   const id = req.params.id;
   const initialLength = medicines.length;
   medicines = medicines.filter(med => med._id !== id);
+
   if (medicines.length === initialLength) {
     return res.status(404).json({ error: 'Medicine not found' });
   }
+
   res.json({ message: 'Medicine deleted' });
 });
 
-// ==================== REMINDER CHECKER ====================
+// ==================== REMINDER CHECKER (every 60 seconds) ====================
 setInterval(() => {
   const now = new Date();
   const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
   medicines.forEach(med => {
     const times = Array.isArray(med.time) ? med.time : [med.time];
-    if (times.includes(currentTime)) {
-      const chatId = med.telegramChatId || process.env.TELEGRAM_CHAT_ID;
-      if (chatId) {
-        sendTelegramMessage(
-          chatId,
-          `🔔 <b>Medicine Reminder!</b>\n💊 Time to take <b>${med.name}</b>\n📏 Dosage: ${med.dosage}\n\nStay healthy! 💪`
-        );
-      }
+
+    if (times.includes(currentTime) && med.ntfyTopic) {
+      sendNtfyNotification({
+        topic: med.ntfyTopic,
+        title: '🔔 Medicine Reminder — MediRemind',
+        message: `💊 Time to take ${med.name}!\n📏 Dosage: ${med.dosage}\n📅 Frequency: ${med.frequency}\n\nDon't skip your dose! Stay healthy 💪`,
+        priority: 'urgent',
+        tags: ['rotating_light', 'pill']
+      });
     }
   });
 }, 60000);
 
 // ==================== AI CHAT ====================
-app.get('/', (req, res) => {
-  res.json({ status: 'MediRemind Backend Live 🚀' });
-});
-
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 app.post('/api/ai/chat', async (req, res) => {
@@ -127,7 +145,10 @@ app.post('/api/ai/chat', async (req, res) => {
 
     const completion = await groq.chat.completions.create({
       messages: [
-        { role: 'system', content: 'Tu ek helpful health assistant hai. Hinglish mein jawab de. Short aur clear rakho.' },
+        {
+          role: 'system',
+          content: 'Tu ek helpful health assistant hai. Hinglish mein jawab de. Short aur clear rakho.'
+        },
         { role: 'user', content: message }
       ],
       model: 'llama-3.3-70b-versatile',
@@ -141,6 +162,11 @@ app.post('/api/ai/chat', async (req, res) => {
     console.error('Groq Error:', error.message);
     res.status(500).json({ reply: 'Main thoda busy tha, ab ready hoon! Dobara try kar.' });
   }
+});
+
+// ==================== BASIC ROUTES ====================
+app.get('/', (req, res) => {
+  res.json({ status: 'MediRemind Backend Live 🚀' });
 });
 
 app.get('/health', (req, res) => {
