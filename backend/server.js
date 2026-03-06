@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const Groq = require('groq-sdk');
-const axios = require('axios');
 
 dotenv.config();
 
@@ -28,23 +27,25 @@ app.options('*', cors());
 app.use(express.json());
 
 // ==================== NTFY NOTIFICATION HELPER ====================
-async function sendNtfyNotification({ topic, title, message, priority = 'high' }) {
+async function sendNtfyNotification({ topic, title, message, priority = 'default' }) {
   if (!topic) {
-    console.log('Ntfy: topic missing, skipping notification');
+    console.log('Ntfy: topic missing, skipping');
     return;
   }
   try {
-    const res = await axios.post('https://ntfy.sh/', {
-      topic,
-      title,
-      message,
-      priority
-    }, {
-      headers: { 'Content-Type': 'application/json' }
+    const payload = JSON.stringify({ topic, title, message, priority });
+    console.log('Sending ntfy payload:', payload);
+    
+    const res = await fetch('https://ntfy.sh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload
     });
-    console.log(`Ntfy notification sent! Status: ${res.status} | Topic: ${topic}`);
+    
+    const responseText = await res.text();
+    console.log(`Ntfy Status: ${res.status} | Response: ${responseText}`);
   } catch (err) {
-    console.error('Ntfy error:', err.response ? err.response.data : err.message);
+    console.error('Ntfy error:', err.message);
   }
 }
 
@@ -52,13 +53,11 @@ async function sendNtfyNotification({ topic, title, message, priority = 'high' }
 let medicines = [];
 let nextId = 1;
 
-// GET all medicines
 app.get('/api/medicines', (req, res) => {
   res.json(medicines);
 });
 
-// POST add new medicine
-app.post('/api/medicines', (req, res) => {
+app.post('/api/medicines', async (req, res) => {
   const { name, dosage, frequency, time, ntfyTopic } = req.body;
 
   if (!name || !dosage || !frequency || !time) {
@@ -76,13 +75,13 @@ app.post('/api/medicines', (req, res) => {
   };
 
   medicines.push(newMedicine);
+  console.log('Medicine added:', name, '| ntfyTopic:', ntfyTopic);
 
-  // Send "medicine added" notification
   if (ntfyTopic) {
-    sendNtfyNotification({
+    await sendNtfyNotification({
       topic: ntfyTopic,
       title: 'Medicine Added - MediRemind',
-      message: `${name} (${dosage}) added! Reminder set for: ${Array.isArray(time) ? time.join(', ') : time}. Frequency: ${frequency}`,
+      message: name + ' (' + dosage + ') added! Reminder: ' + (Array.isArray(time) ? time.join(', ') : time),
       priority: 'default'
     });
   }
@@ -90,35 +89,32 @@ app.post('/api/medicines', (req, res) => {
   res.status(201).json(newMedicine);
 });
 
-// DELETE medicine
 app.delete('/api/medicines/:id', (req, res) => {
   const id = req.params.id;
   const initialLength = medicines.length;
   medicines = medicines.filter(med => med._id !== id);
-
   if (medicines.length === initialLength) {
     return res.status(404).json({ error: 'Medicine not found' });
   }
-
   res.json({ message: 'Medicine deleted' });
 });
 
-// ==================== REMINDER CHECKER (every 60 seconds) ====================
-setInterval(() => {
+// ==================== REMINDER CHECKER ====================
+setInterval(async () => {
   const now = new Date();
-  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const currentTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
-  medicines.forEach(med => {
+  for (const med of medicines) {
     const times = Array.isArray(med.time) ? med.time : [med.time];
     if (times.includes(currentTime) && med.ntfyTopic) {
-      sendNtfyNotification({
+      await sendNtfyNotification({
         topic: med.ntfyTopic,
         title: 'Medicine Reminder - MediRemind',
-        message: `Time to take ${med.name}! Dosage: ${med.dosage}. Don't skip your dose!`,
+        message: 'Time to take ' + med.name + '! Dosage: ' + med.dosage,
         priority: 'urgent'
       });
     }
-  });
+  }
 }, 60000);
 
 // ==================== AI CHAT ====================
@@ -143,11 +139,10 @@ app.post('/api/ai/chat', async (req, res) => {
     res.json({ reply });
   } catch (error) {
     console.error('Groq Error:', error.message);
-    res.status(500).json({ reply: 'Main thoda busy tha, ab ready hoon! Dobara try kar.' });
+    res.status(500).json({ reply: 'Main thoda busy tha, dobara try kar.' });
   }
 });
 
-// ==================== BASIC ROUTES ====================
 app.get('/', (req, res) => {
   res.json({ status: 'MediRemind Backend Live 🚀' });
 });
@@ -161,5 +156,5 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Backend running on port ${PORT}`);
+  console.log('🚀 Backend running on port ' + PORT);
 });
