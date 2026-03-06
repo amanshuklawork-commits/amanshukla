@@ -439,7 +439,7 @@ function AddMedicine() {
             {/* Ntfy Topic */}
             <div className="field-wrap">
               <label className="field-label">🔔 Notification Topic</label>
-              <input className="field-input" type="text" placeholder="e.g. my-medicine-reminder-2024"
+              <input className="field-input" type="text" placeholder="e.g. medremind-john, medremind-aman"
                 value={form.ntfyTopic} onChange={function(e) { setForm({ ...form, ntfyTopic: e.target.value }); }} />
               <span className="ntfy-hint">🔗 Get free notifications via ntfy.sh app</span>
 
@@ -452,7 +452,7 @@ function AddMedicine() {
                 </div>
                 <div className="ntfy-step">
                   <span className="ntfy-step-num">2</span>
-                  <span>Open app → tap <strong style={{color:'#818cf8'}}>+</strong> → enter any unique topic name (e.g. <strong style={{color:'#818cf8'}}>aman-meds-2024</strong>)</span>
+                  <span>Open app → tap <strong style={{color:'#818cf8'}}>+</strong> → enter any unique topic name (e.g. <strong style={{color:'#818cf8'}}>medremind-yourname</strong>)</span>
                 </div>
                 <div className="ntfy-step">
                   <span className="ntfy-step-num">3</span>
@@ -488,7 +488,7 @@ function AddMedicine() {
 
           <div className="tips-section">
             <div className="tips-title">Pro Tips</div>
-            <div className="tip-item"><span className="tip-icon">🔔</span>Use a unique topic name — like your name + random number</div>
+            <div className="tip-item"><span className="tip-icon">🔔</span>Use format: medremind-yourname (e.g. medremind-aman)</div>
             <div className="tip-item"><span className="tip-icon">📱</span>Ntfy app works on Android, iOS and PC browser too!</div>
             <div className="tip-item"><span className="tip-icon">⏰</span>Set reminders at consistent times every day</div>
             <div className="tip-item"><span className="tip-icon">💧</span>Always take medicines with a full glass of water</div>
