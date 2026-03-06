@@ -33,10 +33,10 @@ async function sendNtfyNotification({ topic, title, message, priority = 'default
     return;
   }
   try {
-    const payload = JSON.stringify({ topic, title, message, priority });
+    const payload = JSON.stringify({ title, message, priority });
     console.log('Sending ntfy payload:', payload);
     
-    const res = await fetch('https://ntfy.sh/', {
+    const res = await fetch('https://ntfy.sh/' + topic, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: payload
