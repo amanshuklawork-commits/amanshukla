@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import heartImg from '../assets/heart.png';
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Space+Mono:wght@400;700&display=swap');
@@ -60,32 +61,31 @@ const styles = `
     transform: translate(-50%, -52%);
     width: 520px; height: 520px;
     object-fit: contain;
-    opacity: 0.12;
+    opacity: 0.11;
     pointer-events: none;
     z-index: 0;
-    transition: opacity 0.5s ease, filter 0.5s ease;
+    transition: opacity 0.6s ease, filter 0.6s ease, transform 0.15s ease-out;
     filter:
-      drop-shadow(0 0 30px rgba(220,38,38,0.5))
-      drop-shadow(0 0 70px rgba(220,38,38,0.2))
-      saturate(0.8) brightness(0.7);
-    animation: heartbeatBg 1.4s ease-in-out infinite;
-    will-change: transform, filter;
+      drop-shadow(0 0 20px rgba(220,38,38,0.3))
+      saturate(0.7) brightness(0.65);
+    will-change: transform, filter, opacity;
   }
 
-  .hero:hover .hero-heart-bg {
-    opacity: 0.20;
+  .hero-heart-bg.active {
+    opacity: 0.22;
     filter:
-      drop-shadow(0 0 50px rgba(220,38,38,0.8))
+      drop-shadow(0 0 50px rgba(220,38,38,0.85))
       drop-shadow(0 0 100px rgba(220,38,38,0.4))
-      drop-shadow(0 0 150px rgba(99,102,241,0.3))
-      saturate(1.2) brightness(0.9);
+      drop-shadow(0 0 150px rgba(99,102,241,0.25))
+      saturate(1.3) brightness(0.95);
+    animation: heartbeatBg 1.4s ease-in-out infinite;
   }
 
   @keyframes heartbeatBg {
     0%,100% { transform: translate(-50%, -52%) scale(1); }
-    14%     { transform: translate(-50%, -52%) scale(1.025); }
+    14%     { transform: translate(-50%, -52%) scale(1.03); }
     28%     { transform: translate(-50%, -52%) scale(1); }
-    42%     { transform: translate(-50%, -52%) scale(1.015); }
+    42%     { transform: translate(-50%, -52%) scale(1.02); }
     70%     { transform: translate(-50%, -52%) scale(1); }
   }
 
@@ -266,18 +266,12 @@ const styles = `
 `;
 
 const FLOAT_ICONS = [
-  { emoji: '💊', x: 6,  y: 12, dur: 6.5, delay: 0,   size: 2.0 },
-  { emoji: '🏥', x: 87, y: 18, dur: 7.2, delay: 1.2, size: 2.2 },
-  { emoji: '🩺', x: 13, y: 58, dur: 8.0, delay: 0.5, size: 1.8 },
-  { emoji: '🧬', x: 82, y: 52, dur: 6.8, delay: 2.0, size: 2.0 },
-  { emoji: '💉', x: 4,  y: 78, dur: 7.5, delay: 1.8, size: 1.7 },
-  { emoji: '🩻', x: 91, y: 72, dur: 6.2, delay: 0.8, size: 2.1 },
-  { emoji: '🧪', x: 48, y: 6,  dur: 7.8, delay: 3.0, size: 1.9 },
-  { emoji: '❤️', x: 68, y: 86, dur: 6.0, delay: 1.5, size: 2.3 },
-  { emoji: '🩹', x: 28, y: 88, dur: 7.3, delay: 2.5, size: 1.6 },
-  { emoji: '🔬', x: 54, y: 93, dur: 8.2, delay: 0.3, size: 2.0 },
-  { emoji: '🫀', x: 20, y: 30, dur: 7.0, delay: 1.0, size: 2.4 },
-  { emoji: '🧠', x: 75, y: 35, dur: 6.6, delay: 2.2, size: 1.8 },
+  { emoji: '💊', x: 6,  y: 18, dur: 6.5, delay: 0,   size: 2.0 },
+  { emoji: '🏥', x: 87, y: 22, dur: 7.2, delay: 1.2, size: 2.2 },
+  { emoji: '🩺', x: 10, y: 62, dur: 8.0, delay: 0.5, size: 1.8 },
+  { emoji: '🧬', x: 84, y: 58, dur: 6.8, delay: 2.0, size: 2.0 },
+  { emoji: '🫀', x: 22, y: 82, dur: 7.0, delay: 1.0, size: 2.1 },
+  { emoji: '🔬', x: 76, y: 80, dur: 8.2, delay: 0.3, size: 1.9 },
 ];
 
 function Home() {
@@ -339,7 +333,7 @@ function Home() {
     return ()=>{ cancelAnimationFrame(animFrameRef.current); window.removeEventListener('scroll',onScroll); window.removeEventListener('resize',onResize); };
   }, []);
 
-  // Mouse parallax — icons + heart tilt
+  // Mouse parallax — icons + heart cursor proximity heartbeat
   useEffect(() => {
     const onMove = (e) => {
       const mx = e.clientX/window.innerWidth - 0.5;
@@ -351,12 +345,20 @@ function Home() {
         el.style.transform = `translate(${mx*30*depth}px, ${my*20*depth}px)`;
       });
 
-      // Heart follows cursor with subtle tilt
+      // Heart follows cursor + activate heartbeat when cursor near center
       if (heartRef.current) {
         const moveX = mx * 20;
         const moveY = my * 14;
         heartRef.current.style.transform =
           `translate(calc(-50% + ${moveX}px), calc(-52% + ${moveY}px))`;
+
+        // Proximity check — center of screen is 0,0 in mx/my terms
+        const dist = Math.sqrt(mx*mx + my*my);
+        if (dist < 0.35) {
+          heartRef.current.classList.add('active');
+        } else {
+          heartRef.current.classList.remove('active');
+        }
       }
     };
     window.addEventListener('mousemove', onMove);
@@ -420,7 +422,7 @@ function Home() {
           {/* Real heart image — faded behind text, follows cursor */}
           <img
             ref={heartRef}
-            src="/heart.png"
+            src={heartImg}
             alt=""
             className="hero-heart-bg"
           />
