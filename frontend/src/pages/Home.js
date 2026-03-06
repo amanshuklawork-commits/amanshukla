@@ -25,56 +25,14 @@ const styles = `
     animation: floatGlow ease-in-out infinite;
     will-change: transform, opacity;
     transition: transform 0.15s ease-out;
-    filter: drop-shadow(0 0 8px currentColor);
   }
 
   @keyframes floatGlow {
-    0%   { transform: translateY(0px) rotate(-4deg) scale(1);   opacity: 0.18; filter: drop-shadow(0 0 6px rgba(99,102,241,0.8)); }
+    0%   { transform: translateY(0px) rotate(-4deg) scale(1);    opacity: 0.18; filter: drop-shadow(0 0 6px rgba(99,102,241,0.8)); }
     25%  { transform: translateY(-22px) rotate(3deg) scale(1.1); opacity: 0.32; filter: drop-shadow(0 0 14px rgba(6,182,212,0.9)); }
     50%  { transform: translateY(-10px) rotate(-2deg) scale(1.05); opacity: 0.22; filter: drop-shadow(0 0 10px rgba(16,185,129,0.8)); }
     75%  { transform: translateY(-28px) rotate(5deg) scale(1.08); opacity: 0.30; filter: drop-shadow(0 0 18px rgba(245,158,11,0.9)); }
-    100% { transform: translateY(0px) rotate(-4deg) scale(1);   opacity: 0.18; filter: drop-shadow(0 0 6px rgba(99,102,241,0.8)); }
-  }
-
-  /* ===== HEART WRAPPER ===== */
-  .heart-wrapper {
-    position: relative;
-    width: 260px; height: 240px;
-    margin: 0 auto 28px auto;
-    animation: fadeUp 0.8s ease 0.15s both;
-  }
-
-  .heart-wrapper svg {
-    filter:
-      drop-shadow(0 0 18px rgba(220,38,38,0.6))
-      drop-shadow(0 0 40px rgba(220,38,38,0.3))
-      drop-shadow(0 0 70px rgba(99,102,241,0.2));
-    animation: heartbeat 1.4s ease-in-out infinite;
-  }
-
-  @keyframes heartbeat {
-    0%,100% { transform: scale(1); }
-    14%     { transform: scale(1.06); }
-    28%     { transform: scale(1); }
-    42%     { transform: scale(1.04); }
-    70%     { transform: scale(1); }
-  }
-
-  /* pulse circles */
-  .heart-pulse {
-    position: absolute; inset: 0;
-    border-radius: 50%;
-    border: 2px solid rgba(220,38,38,0.25);
-    animation: pulseOut 2s ease-out infinite;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 120px; height: 120px;
-  }
-  .heart-pulse:nth-child(2) { animation-delay: 0.7s; border-color: rgba(99,102,241,0.2); }
-
-  @keyframes pulseOut {
-    0%   { transform: translate(-50%,-50%) scale(1);   opacity: 0.7; }
-    100% { transform: translate(-50%,-50%) scale(2.2); opacity: 0; }
+    100% { transform: translateY(0px) rotate(-4deg) scale(1);    opacity: 0.18; filter: drop-shadow(0 0 6px rgba(99,102,241,0.8)); }
   }
 
   /* ===== HOME WRAP ===== */
@@ -85,12 +43,55 @@ const styles = `
     font-family: 'Outfit', sans-serif;
   }
 
+  /* ===== HERO ===== */
   .hero {
     min-height: calc(100vh - 68px);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     text-align: center; padding: 20px 20px;
     position: relative; z-index: 2;
+    overflow: hidden;
+  }
+
+  /* ===== FADED HEART IMAGE BACKGROUND ===== */
+  .hero-heart-bg {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -52%);
+    width: 520px; height: 520px;
+    object-fit: contain;
+    opacity: 0.12;
+    pointer-events: none;
+    z-index: 0;
+    transition: opacity 0.5s ease, filter 0.5s ease;
+    filter:
+      drop-shadow(0 0 30px rgba(220,38,38,0.5))
+      drop-shadow(0 0 70px rgba(220,38,38,0.2))
+      saturate(0.8) brightness(0.7);
+    animation: heartbeatBg 1.4s ease-in-out infinite;
+    will-change: transform, filter;
+  }
+
+  .hero:hover .hero-heart-bg {
+    opacity: 0.20;
+    filter:
+      drop-shadow(0 0 50px rgba(220,38,38,0.8))
+      drop-shadow(0 0 100px rgba(220,38,38,0.4))
+      drop-shadow(0 0 150px rgba(99,102,241,0.3))
+      saturate(1.2) brightness(0.9);
+  }
+
+  @keyframes heartbeatBg {
+    0%,100% { transform: translate(-50%, -52%) scale(1); }
+    14%     { transform: translate(-50%, -52%) scale(1.025); }
+    28%     { transform: translate(-50%, -52%) scale(1); }
+    42%     { transform: translate(-50%, -52%) scale(1.015); }
+    70%     { transform: translate(-50%, -52%) scale(1); }
+  }
+
+  /* All hero content sits above heart */
+  .hero > *:not(.hero-heart-bg) {
+    position: relative; z-index: 1;
   }
 
   .hero-badge {
@@ -260,6 +261,7 @@ const styles = `
     .stats-band{grid-template-columns:repeat(2,1fr);}
     .stat-item:nth-child(2){border-right:none;}
     .stat-item:nth-child(1),.stat-item:nth-child(2){border-bottom:1px solid rgba(255,255,255,0.06);}
+    .hero-heart-bg { width: 320px; height: 320px; }
   }
 `;
 
@@ -278,147 +280,12 @@ const FLOAT_ICONS = [
   { emoji: '🧠', x: 75, y: 35, dur: 6.6, delay: 2.2, size: 1.8 },
 ];
 
-// Real anatomical heart SVG
-function AnatomicalHeart() {
-  return (
-    <div className="heart-wrapper">
-      <div className="heart-pulse" />
-      <div className="heart-pulse" style={{animationDelay:'0.7s'}} />
-      <svg viewBox="0 0 260 240" width="260" height="240" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          {/* Heart muscle gradient */}
-          <radialGradient id="hg1" cx="40%" cy="35%" r="65%">
-            <stop offset="0%"   stopColor="#ff6b6b"/>
-            <stop offset="40%"  stopColor="#dc2626"/>
-            <stop offset="75%"  stopColor="#991b1b"/>
-            <stop offset="100%" stopColor="#7f1d1d"/>
-          </radialGradient>
-          {/* Aorta gradient - bright red */}
-          <linearGradient id="aortaG" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%"  stopColor="#ef4444"/>
-            <stop offset="100%" stopColor="#dc2626"/>
-          </linearGradient>
-          {/* Vein gradient - blue/purple */}
-          <linearGradient id="veinG" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%"  stopColor="#6366f1"/>
-            <stop offset="100%" stopColor="#4338ca"/>
-          </linearGradient>
-          {/* Pulmonary artery - lighter red */}
-          <linearGradient id="pulG" x1="0%" y1="100%" x2="0%" y2="0%">
-            <stop offset="0%"  stopColor="#f87171"/>
-            <stop offset="100%" stopColor="#fca5a5"/>
-          </linearGradient>
-          {/* Dark shadow for depth */}
-          <radialGradient id="shadowG" cx="50%" cy="80%" r="50%">
-            <stop offset="0%"   stopColor="rgba(0,0,0,0.5)"/>
-            <stop offset="100%" stopColor="rgba(0,0,0,0)"/>
-          </radialGradient>
-          {/* Highlight */}
-          <radialGradient id="highlightG" cx="30%" cy="25%" r="40%">
-            <stop offset="0%"   stopColor="rgba(255,180,180,0.45)"/>
-            <stop offset="100%" stopColor="rgba(255,100,100,0)"/>
-          </radialGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="3" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <filter id="softGlow">
-            <feGaussianBlur stdDeviation="1.5" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-
-        {/* ====== MAIN HEART BODY ====== */}
-        {/* Left ventricle (larger, bottom-left) */}
-        <ellipse cx="108" cy="162" rx="52" ry="62" fill="url(#hg1)" />
-        {/* Right ventricle (smaller, right) */}
-        <ellipse cx="158" cy="155" rx="40" ry="52" fill="#c0392b" opacity="0.9"/>
-        {/* Left atrium (top-left bump) */}
-        <ellipse cx="98" cy="100" rx="42" ry="36" fill="#dc2626" />
-        {/* Right atrium (top-right bump) */}
-        <ellipse cx="158" cy="105" rx="35" ry="30" fill="#b91c1c" />
-
-        {/* Septum line */}
-        <line x1="138" y1="95" x2="130" y2="210" stroke="#7f1d1d" strokeWidth="3" opacity="0.6"/>
-
-        {/* ====== AORTA (thick red arch going up-right) ====== */}
-        <path d="M 125 82 C 120 55, 105 38, 95 28 C 85 18, 72 15, 68 20 C 62 27, 70 38, 82 42 C 92 46, 105 50, 118 70"
-              fill="none" stroke="url(#aortaG)" strokeWidth="14" strokeLinecap="round" filter="url(#softGlow)"/>
-        {/* Aorta highlight */}
-        <path d="M 122 82 C 117 58, 104 42, 94 32 C 85 23, 73 19, 70 23"
-              fill="none" stroke="rgba(255,150,150,0.5)" strokeWidth="5" strokeLinecap="round"/>
-
-        {/* ====== PULMONARY ARTERY (left, blue-ish) ====== */}
-        <path d="M 138 80 C 142 58, 148 44, 152 32 C 155 22, 160 16, 168 14 C 175 12, 182 16, 186 22"
-              fill="none" stroke="#6366f1" strokeWidth="11" strokeLinecap="round" filter="url(#softGlow)"/>
-        <path d="M 140 80 C 144 60, 150 46, 154 34"
-              fill="none" stroke="rgba(150,160,255,0.5)" strokeWidth="4" strokeLinecap="round"/>
-
-        {/* ====== SUPERIOR VENA CAVA (top right, blue) ====== */}
-        <path d="M 170 95 C 178 78, 182 60, 185 44 C 187 32, 185 24, 188 18"
-              fill="none" stroke="#4338ca" strokeWidth="10" strokeLinecap="round"/>
-        <path d="M 172 95 C 180 80, 183 63, 186 48"
-              fill="none" stroke="rgba(130,140,255,0.4)" strokeWidth="4" strokeLinecap="round"/>
-
-        {/* ====== INFERIOR VENA CAVA (bottom, blue) ====== */}
-        <path d="M 162 195 C 162 210, 164 222, 168 232"
-              fill="none" stroke="#4338ca" strokeWidth="10" strokeLinecap="round"/>
-
-        {/* ====== PULMONARY VEINS (left side, red) ====== */}
-        <path d="M 78 108 C 58 105, 42 100, 30 96 C 20 93, 14 90, 10 88"
-              fill="none" stroke="#ef4444" strokeWidth="7" strokeLinecap="round"/>
-        <path d="M 80 122 C 60 120, 44 116, 32 112"
-              fill="none" stroke="#ef4444" strokeWidth="5" strokeLinecap="round"/>
-
-        {/* ====== RIGHT PULMONARY VEINS ====== */}
-        <path d="M 186 108 C 202 104, 216 100, 228 96"
-              fill="none" stroke="#ef4444" strokeWidth="6" strokeLinecap="round"/>
-        <path d="M 184 122 C 200 118, 214 114, 226 110"
-              fill="none" stroke="#ef4444" strokeWidth="4" strokeLinecap="round"/>
-
-        {/* ====== CORONARY ARTERIES (on heart surface) ====== */}
-        {/* Left coronary - wraps around left ventricle */}
-        <path d="M 118 118 C 105 125, 92 135, 82 148 C 74 160, 72 175, 78 188 C 85 202, 96 210, 108 212"
-              fill="none" stroke="#ef4444" strokeWidth="4" strokeLinecap="round" filter="url(#softGlow)" opacity="0.9"/>
-        {/* Right coronary */}
-        <path d="M 148 118 C 160 128, 168 140, 170 155 C 172 168, 166 180, 158 188"
-              fill="none" stroke="#f87171" strokeWidth="3.5" strokeLinecap="round" opacity="0.8"/>
-        {/* Circumflex branch */}
-        <path d="M 108 135 C 100 142, 95 152, 95 162 C 95 172, 98 182, 105 190"
-              fill="none" stroke="#fca5a5" strokeWidth="2.5" strokeLinecap="round" opacity="0.7"/>
-        {/* Diagonal branch */}
-        <path d="M 115 148 C 105 158, 98 170, 96 182"
-              fill="none" stroke="#fca5a5" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
-
-        {/* ====== SHADOW / DEPTH ====== */}
-        <ellipse cx="130" cy="210" rx="65" ry="20" fill="url(#shadowG)" opacity="0.5"/>
-
-        {/* ====== HIGHLIGHT ====== */}
-        <ellipse cx="95" cy="105" rx="38" ry="28" fill="url(#highlightG)"/>
-
-        {/* ====== VALVE INDICATORS ====== */}
-        {/* Mitral valve hint */}
-        <ellipse cx="115" cy="133" rx="12" ry="8" fill="none" stroke="#fbbf24" strokeWidth="1.5" opacity="0.6" strokeDasharray="3,2"/>
-        {/* Aortic valve hint */}
-        <circle cx="128" cy="95" r="8" fill="none" stroke="#fbbf24" strokeWidth="1.5" opacity="0.5" strokeDasharray="3,2"/>
-        {/* Pulmonary valve hint */}
-        <circle cx="143" cy="88" r="6" fill="none" stroke="#a78bfa" strokeWidth="1.5" opacity="0.5" strokeDasharray="3,2"/>
-
-        {/* ====== SMALL LABEL DOTS (like anatomy diagram) ====== */}
-        <circle cx="128" cy="95"  r="2.5" fill="#fbbf24" opacity="0.9"/>
-        <circle cx="68"  cy="20"  r="2.5" fill="#ef4444" opacity="0.9"/>
-        <circle cx="186" cy="22"  r="2.5" fill="#6366f1" opacity="0.9"/>
-        <circle cx="168" cy="232" r="2.5" fill="#4338ca" opacity="0.9"/>
-      </svg>
-    </div>
-  );
-}
-
 function Home() {
   const canvasRef    = useRef(null);
   const scrollYRef   = useRef(0);
   const animFrameRef = useRef(null);
   const iconsRef     = useRef([]);
+  const heartRef     = useRef(null);
 
   const [stats, setStats] = useState({ medicines: 0, features: 0, accuracy: 0, aiSupport: 0 });
 
@@ -472,16 +339,25 @@ function Home() {
     return ()=>{ cancelAnimationFrame(animFrameRef.current); window.removeEventListener('scroll',onScroll); window.removeEventListener('resize',onResize); };
   }, []);
 
-  // Mouse parallax for floating icons
+  // Mouse parallax — icons + heart tilt
   useEffect(() => {
     const onMove = (e) => {
       const mx = e.clientX/window.innerWidth - 0.5;
       const my = e.clientY/window.innerHeight - 0.5;
+
       iconsRef.current.forEach((el, i) => {
         if (!el) return;
         const depth = 0.4 + (i % 4) * 0.3;
         el.style.transform = `translate(${mx*30*depth}px, ${my*20*depth}px)`;
       });
+
+      // Heart follows cursor with subtle tilt
+      if (heartRef.current) {
+        const moveX = mx * 20;
+        const moveY = my * 14;
+        heartRef.current.style.transform =
+          `translate(calc(-50% + ${moveX}px), calc(-52% + ${moveY}px))`;
+      }
     };
     window.addEventListener('mousemove', onMove);
     return () => window.removeEventListener('mousemove', onMove);
@@ -529,7 +405,6 @@ function Home() {
       <style>{styles}</style>
       <canvas ref={canvasRef} id="star-canvas" />
 
-      {/* Glowing floating medical icons */}
       <div className="floating-icons-layer">
         {FLOAT_ICONS.map((ic, i) => (
           <div key={i} ref={el=>iconsRef.current[i]=el} className="float-icon"
@@ -541,13 +416,19 @@ function Home() {
 
       <div className="home-wrap">
         <div className="hero">
+
+          {/* Real heart image — faded behind text, follows cursor */}
+          <img
+            ref={heartRef}
+            src="/heart.png"
+            alt=""
+            className="hero-heart-bg"
+          />
+
           <div className="hero-badge">
             <span className="live-dot" />
             AI-Powered Health Assistant — Always On
           </div>
-
-          {/* Real Anatomical Heart */}
-          <AnatomicalHeart />
 
           <h1 className="hero-title">
             <span className="line1">Your Personal</span>
