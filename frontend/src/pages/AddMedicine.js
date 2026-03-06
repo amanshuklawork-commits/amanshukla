@@ -114,6 +114,33 @@ const styles = `
     padding-left: 2px;
   }
 
+  .ntfy-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .ntfy-prefix-btn {
+    position: absolute;
+    right: 12px;
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 8px;
+    color: #818cf8;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .ntfy-prefix-btn:hover {
+    background: rgba(99,102,241,0.25);
+    border-color: rgba(99,102,241,0.5);
+  }
+
   .ntfy-hint {
     font-size: 0.73rem;
     color: #6366f1;
@@ -439,8 +466,19 @@ function AddMedicine() {
             {/* Ntfy Topic */}
             <div className="field-wrap">
               <label className="field-label">🔔 Notification Topic</label>
-              <input className="field-input" type="text" placeholder="e.g. medremind-john, medremind-aman"
-                value={form.ntfyTopic} onChange={function(e) { setForm({ ...form, ntfyTopic: e.target.value }); }} />
+              <div className="ntfy-input-wrap">
+                <input className="field-input" type="text" placeholder="e.g. medremind-aman"
+                  value={form.ntfyTopic} onChange={function(e) { setForm({ ...form, ntfyTopic: e.target.value }); }}
+                  style={{paddingRight: '145px'}} />
+                <button type="button" className="ntfy-prefix-btn"
+                  onClick={function() {
+                    if (!form.ntfyTopic.startsWith('medremind-')) {
+                      setForm({ ...form, ntfyTopic: 'medremind-' });
+                    }
+                  }}>
+                  medremind- →
+                </button>
+              </div>
               <span className="ntfy-hint">🔗 Get free notifications via ntfy.sh app</span>
 
               {/* Setup Instructions */}
