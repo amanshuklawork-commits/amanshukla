@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import Footer from './components/Footer';
 import { ThemeProvider } from './context/ThemeContext';
+import Chatbot from './components/Chatbot';
 
 // Pages
 import Home from './pages/Home';
@@ -34,6 +35,7 @@ function App() {
             <Route path="/add-medicine" element={<AddMedicine />} />
           </Routes>
           <Footer />
+          <Chatbot />
         </div>
       </Router>
     </ThemeProvider>
