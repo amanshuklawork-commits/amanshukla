@@ -98,7 +98,7 @@ app.delete('/api/medicines/:id', (req, res) => {
 
 // ==================== REMINDER CHECKER ====================
 setInterval(async () => {
-  const now = new Date();
+  const now = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
   const currentTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
   console.log('Checking reminders at:', currentTime, '| Total medicines:', medicines.length);
 
