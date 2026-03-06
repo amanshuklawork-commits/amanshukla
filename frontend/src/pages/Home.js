@@ -7,276 +7,200 @@ const styles = `
   body { background: #030306 !important; }
 
   #star-canvas {
-    position: fixed;
-    top: 0; left: 0;
+    position: fixed; top: 0; left: 0;
     width: 100vw; height: 100vh;
-    z-index: 0;
-    pointer-events: none;
+    z-index: 0; pointer-events: none;
   }
 
-  /* ===== FLOATING MEDICAL ICONS ===== */
+  /* ===== GLOWING FLOATING MEDICAL ICONS ===== */
   .floating-icons-layer {
-    position: fixed;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    overflow: hidden;
+    position: fixed; inset: 0;
+    z-index: 1; pointer-events: none; overflow: hidden;
   }
 
   .float-icon {
     position: absolute;
-    font-size: 1.6rem;
-    opacity: 0.13;
-    filter: blur(0.3px);
-    animation: floatDrift linear infinite;
-    will-change: transform;
-    transition: transform 0.1s ease-out;
+    font-size: 1.8rem;
+    opacity: 0;
+    animation: floatGlow ease-in-out infinite;
+    will-change: transform, opacity;
+    transition: transform 0.15s ease-out;
+    filter: drop-shadow(0 0 8px currentColor);
   }
 
-  @keyframes floatDrift {
-    0%   { transform: translateY(0px) rotate(0deg); }
-    25%  { transform: translateY(-18px) rotate(4deg); }
-    50%  { transform: translateY(-8px) rotate(-3deg); }
-    75%  { transform: translateY(-22px) rotate(5deg); }
-    100% { transform: translateY(0px) rotate(0deg); }
+  @keyframes floatGlow {
+    0%   { transform: translateY(0px) rotate(-4deg) scale(1);   opacity: 0.18; filter: drop-shadow(0 0 6px rgba(99,102,241,0.8)); }
+    25%  { transform: translateY(-22px) rotate(3deg) scale(1.1); opacity: 0.32; filter: drop-shadow(0 0 14px rgba(6,182,212,0.9)); }
+    50%  { transform: translateY(-10px) rotate(-2deg) scale(1.05); opacity: 0.22; filter: drop-shadow(0 0 10px rgba(16,185,129,0.8)); }
+    75%  { transform: translateY(-28px) rotate(5deg) scale(1.08); opacity: 0.30; filter: drop-shadow(0 0 18px rgba(245,158,11,0.9)); }
+    100% { transform: translateY(0px) rotate(-4deg) scale(1);   opacity: 0.18; filter: drop-shadow(0 0 6px rgba(99,102,241,0.8)); }
   }
 
-  /* ===== 3D HEART CANVAS ===== */
-  #heart-canvas {
-    display: block;
+  /* ===== HEART WRAPPER ===== */
+  .heart-wrapper {
+    position: relative;
+    width: 260px; height: 240px;
     margin: 0 auto 28px auto;
     animation: fadeUp 0.8s ease 0.15s both;
-    filter: drop-shadow(0 0 32px rgba(99,102,241,0.5));
+  }
+
+  .heart-wrapper svg {
+    filter:
+      drop-shadow(0 0 18px rgba(220,38,38,0.6))
+      drop-shadow(0 0 40px rgba(220,38,38,0.3))
+      drop-shadow(0 0 70px rgba(99,102,241,0.2));
+    animation: heartbeat 1.4s ease-in-out infinite;
+  }
+
+  @keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    14%     { transform: scale(1.06); }
+    28%     { transform: scale(1); }
+    42%     { transform: scale(1.04); }
+    70%     { transform: scale(1); }
+  }
+
+  /* pulse circles */
+  .heart-pulse {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(220,38,38,0.25);
+    animation: pulseOut 2s ease-out infinite;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px; height: 120px;
+  }
+  .heart-pulse:nth-child(2) { animation-delay: 0.7s; border-color: rgba(99,102,241,0.2); }
+
+  @keyframes pulseOut {
+    0%   { transform: translate(-50%,-50%) scale(1);   opacity: 0.7; }
+    100% { transform: translate(-50%,-50%) scale(2.2); opacity: 0; }
   }
 
   /* ===== HOME WRAP ===== */
   .home-wrap {
     min-height: calc(100vh - 68px);
-    position: relative;
-    z-index: 2;
-    overflow-x: hidden;
-    background: transparent;
+    position: relative; z-index: 2;
+    overflow-x: hidden; background: transparent;
     font-family: 'Outfit', sans-serif;
   }
 
   .hero {
     min-height: calc(100vh - 68px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 20px 20px;
-    position: relative;
-    z-index: 2;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 20px 20px;
+    position: relative; z-index: 2;
   }
 
   .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    display: inline-flex; align-items: center; gap: 8px;
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 999px;
-    padding: 7px 18px;
-    font-size: 0.78rem;
-    color: #94a3b8;
+    border-radius: 999px; padding: 7px 18px;
+    font-size: 0.78rem; color: #94a3b8;
     margin-bottom: 24px;
     animation: fadeUp 0.6s ease 0.1s both;
     backdrop-filter: blur(10px);
   }
 
   .live-dot {
-    width: 7px; height: 7px;
-    background: #10b981;
-    border-radius: 50%;
-    box-shadow: 0 0 8px #10b981;
+    width: 7px; height: 7px; background: #10b981;
+    border-radius: 50%; box-shadow: 0 0 8px #10b981;
     animation: livePulse 1.5s ease-in-out infinite;
   }
-
-  @keyframes livePulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.5); opacity: 0.5; }
-  }
+  @keyframes livePulse { 0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.5);opacity:0.5;} }
 
   .hero-title {
     font-size: clamp(2.8rem, 7vw, 5.5rem);
-    font-weight: 900;
-    line-height: 1.05;
-    letter-spacing: -3px;
-    margin-bottom: 18px;
+    font-weight: 900; line-height: 1.05;
+    letter-spacing: -3px; margin-bottom: 18px;
     animation: fadeUp 0.6s ease 0.2s both;
   }
-
-  .hero-title .line1 {
-    color: #f1f5f9;
-    display: block;
-    margin-bottom: 4px;
-  }
-
+  .hero-title .line1 { color: #f1f5f9; display: block; margin-bottom: 4px; }
   .hero-title .gradient-word {
     background: linear-gradient(135deg, #6366f1 0%, #06b6d4 35%, #10b981 65%, #f59e0b 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-size: 300% 300%;
-    animation: gradFlow 5s ease infinite;
-    display: block;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-size: 300% 300%; animation: gradFlow 5s ease infinite; display: block;
   }
-
-  @keyframes gradFlow {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
+  @keyframes gradFlow { 0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;} }
 
   .hero-sub {
-    font-size: 1rem;
-    color: #94a3b8;
-    max-width: 480px;
-    line-height: 1.75;
-    margin-bottom: 32px;
+    font-size: 1rem; color: #94a3b8; max-width: 480px;
+    line-height: 1.75; margin-bottom: 32px;
     animation: fadeUp 0.6s ease 0.3s both;
   }
 
   .hero-btns {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-bottom: 36px;
+    display: flex; gap: 12px; flex-wrap: wrap;
+    justify-content: center; margin-bottom: 36px;
     animation: fadeUp 0.6s ease 0.4s both;
   }
 
   .btn-glow {
-    padding: 14px 32px;
-    border-radius: 14px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    font-family: 'Outfit', sans-serif;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
+    padding: 14px 32px; border-radius: 14px;
+    font-size: 0.95rem; font-weight: 700;
+    font-family: 'Outfit', sans-serif; cursor: pointer;
+    text-decoration: none; display: inline-flex;
+    align-items: center; gap: 9px;
     transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    border: none;
+    position: relative; overflow: hidden; border: none;
   }
-
   .btn-glow.primary {
     background: linear-gradient(135deg, #6366f1, #06b6d4);
-    color: white;
-    box-shadow: 0 0 35px rgba(99,102,241,0.4);
+    color: white; box-shadow: 0 0 35px rgba(99,102,241,0.4);
   }
-
-  .btn-glow.primary:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 0 55px rgba(99,102,241,0.7);
-  }
-
+  .btn-glow.primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 0 55px rgba(99,102,241,0.7); }
   .btn-glow.secondary {
-    background: rgba(255,255,255,0.04);
-    color: #94a3b8;
+    background: rgba(255,255,255,0.04); color: #94a3b8;
     border: 1px solid rgba(255,255,255,0.1);
   }
-
-  .btn-glow.secondary:hover {
-    background: rgba(255,255,255,0.08);
-    color: #f1f5f9;
-    transform: translateY(-3px);
-    border-color: rgba(255,255,255,0.2);
-  }
-
+  .btn-glow.secondary:hover { background: rgba(255,255,255,0.08); color: #f1f5f9; transform: translateY(-3px); border-color: rgba(255,255,255,0.2); }
   .btn-glow:active { transform: scale(0.97) !important; }
-
   .btn-glow::after {
-    content: '';
-    position: absolute;
-    top: 0; left: -100%;
-    width: 100%; height: 100%;
+    content:''; position:absolute; top:0; left:-100%;
+    width:100%; height:100%;
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
     transition: left 0.6s ease;
   }
-
   .btn-glow:hover::after { left: 100%; }
 
-  /* ===== STATS BAND ===== */
   .stats-band {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    width: 100%;
-    max-width: 580px;
+    display: grid; grid-template-columns: repeat(4,1fr);
+    width: 100%; max-width: 580px;
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 20px;
-    overflow: hidden;
+    border-radius: 20px; overflow: hidden;
     animation: fadeUp 0.6s ease 0.5s both;
   }
-
   .stat-item {
-    text-align: center;
-    padding: 18px 12px;
+    text-align: center; padding: 18px 12px;
     border-right: 1px solid rgba(255,255,255,0.06);
     transition: background 0.3s ease;
   }
-
   .stat-item:hover { background: rgba(99,102,241,0.05); }
   .stat-item:last-child { border-right: none; }
-
   .stat-num {
-    font-size: 1.6rem;
-    font-weight: 900;
+    font-size: 1.6rem; font-weight: 900;
     font-family: 'Space Mono', monospace;
-    background: linear-gradient(135deg, #6366f1, #06b6d4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    display: block;
-    line-height: 1.1;
-    white-space: nowrap;
+    background: linear-gradient(135deg,#6366f1,#06b6d4);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    display: block; line-height: 1.1; white-space: nowrap;
   }
+  .stat-lbl { font-size: 0.62rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 5px; display: block; }
 
-  .stat-lbl {
-    font-size: 0.62rem;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-top: 5px;
-    display: block;
-  }
-
-  /* ===== FEATURES SECTION ===== */
   .features-section {
-    padding: 80px 32px;
-    max-width: 1100px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 2;
+    padding: 80px 32px; max-width: 1100px;
+    margin: 0 auto; position: relative; z-index: 2;
   }
-
   .section-inner {
     background: rgba(99,102,241,0.02);
     border-top: 1px solid rgba(99,102,241,0.08);
     border-bottom: 1px solid rgba(99,102,241,0.08);
-    margin: 0 -32px;
-    padding: 70px 32px;
+    margin: 0 -32px; padding: 70px 32px;
   }
-
-  .section-title {
-    text-align: center;
-    font-size: 1.7rem;
-    font-weight: 800;
-    color: #f1f5f9;
-    margin-bottom: 6px;
-    letter-spacing: -0.5px;
-  }
-
-  .section-sub {
-    text-align: center;
-    color: #475569;
-    font-size: 0.88rem;
-    margin-bottom: 36px;
-  }
+  .section-title { text-align:center; font-size:1.7rem; font-weight:800; color:#f1f5f9; margin-bottom:6px; letter-spacing:-0.5px; }
+  .section-sub { text-align:center; color:#475569; font-size:0.88rem; margin-bottom:36px; }
 
   .features-grid {
     display: grid;
@@ -284,153 +208,221 @@ const styles = `
     gap: 14px;
   }
 
-  /* ===== SCROLL-ANIMATED FEATURE CARDS ===== */
   .feat-card {
     background: rgba(255,255,255,0.025);
     border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 18px;
-    padding: 26px 22px;
-    cursor: pointer;
-    transition: all 0.4s ease;
-    position: relative;
-    overflow: hidden;
-    text-decoration: none;
-    display: block;
-    opacity: 0;
-    transform: translateY(40px);
+    border-radius: 18px; padding: 26px 22px;
+    cursor: pointer; transition: all 0.4s ease;
+    position: relative; overflow: hidden;
+    text-decoration: none; display: block;
+    opacity: 0; transform: translateY(40px);
   }
+  .feat-card.visible { animation: cardReveal 0.6s ease forwards; }
+  @keyframes cardReveal { from{opacity:0;transform:translateY(40px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);} }
+  .feat-card::before { content:''; position:absolute; inset:0; background:var(--card-gradient); opacity:0; transition:opacity 0.4s ease; }
+  .feat-card:hover::before { opacity:1; }
+  .feat-card:hover { transform:translateY(-6px) !important; border-color:var(--card-border); box-shadow:0 24px 48px rgba(0,0,0,0.5),var(--card-glow); }
+  .feat-card:active { transform:translateY(-2px) scale(0.98) !important; }
 
-  .feat-card.visible {
-    animation: cardReveal 0.6s ease forwards;
-  }
-
-  @keyframes cardReveal {
-    from { opacity: 0; transform: translateY(40px) scale(0.97); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
-  }
-
-  .feat-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--card-gradient);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
-
-  .feat-card:hover::before { opacity: 1; }
-
-  .feat-card:hover {
-    transform: translateY(-6px) !important;
-    border-color: var(--card-border);
-    box-shadow: 0 24px 48px rgba(0,0,0,0.5), var(--card-glow);
-  }
-
-  .feat-card:active { transform: translateY(-2px) scale(0.98) !important; }
-
-  .feat-card.c1 { --card-gradient: linear-gradient(135deg, rgba(99,102,241,0.09), transparent); --card-border: rgba(99,102,241,0.35); --card-glow: 0 0 30px rgba(99,102,241,0.15); }
-  .feat-card.c2 { --card-gradient: linear-gradient(135deg, rgba(6,182,212,0.09), transparent); --card-border: rgba(6,182,212,0.35); --card-glow: 0 0 30px rgba(6,182,212,0.15); }
-  .feat-card.c3 { --card-gradient: linear-gradient(135deg, rgba(16,185,129,0.09), transparent); --card-border: rgba(16,185,129,0.35); --card-glow: 0 0 30px rgba(16,185,129,0.15); }
-  .feat-card.c4 { --card-gradient: linear-gradient(135deg, rgba(245,158,11,0.09), transparent); --card-border: rgba(245,158,11,0.35); --card-glow: 0 0 30px rgba(245,158,11,0.15); }
-  .feat-card.c5 { --card-gradient: linear-gradient(135deg, rgba(239,68,68,0.09), transparent); --card-border: rgba(239,68,68,0.35); --card-glow: 0 0 30px rgba(239,68,68,0.15); }
-  .feat-card.c6 { --card-gradient: linear-gradient(135deg, rgba(168,85,247,0.09), transparent); --card-border: rgba(168,85,247,0.35); --card-glow: 0 0 30px rgba(168,85,247,0.15); }
-  .feat-card.c7 { --card-gradient: linear-gradient(135deg, rgba(236,72,153,0.09), transparent); --card-border: rgba(236,72,153,0.35); --card-glow: 0 0 30px rgba(236,72,153,0.15); }
-  .feat-card.c8 { --card-gradient: linear-gradient(135deg, rgba(20,184,166,0.09), transparent); --card-border: rgba(20,184,166,0.35); --card-glow: 0 0 30px rgba(20,184,166,0.15); }
+  .feat-card.c1{--card-gradient:linear-gradient(135deg,rgba(99,102,241,0.09),transparent);--card-border:rgba(99,102,241,0.35);--card-glow:0 0 30px rgba(99,102,241,0.15);}
+  .feat-card.c2{--card-gradient:linear-gradient(135deg,rgba(6,182,212,0.09),transparent);--card-border:rgba(6,182,212,0.35);--card-glow:0 0 30px rgba(6,182,212,0.15);}
+  .feat-card.c3{--card-gradient:linear-gradient(135deg,rgba(16,185,129,0.09),transparent);--card-border:rgba(16,185,129,0.35);--card-glow:0 0 30px rgba(16,185,129,0.15);}
+  .feat-card.c4{--card-gradient:linear-gradient(135deg,rgba(245,158,11,0.09),transparent);--card-border:rgba(245,158,11,0.35);--card-glow:0 0 30px rgba(245,158,11,0.15);}
+  .feat-card.c5{--card-gradient:linear-gradient(135deg,rgba(239,68,68,0.09),transparent);--card-border:rgba(239,68,68,0.35);--card-glow:0 0 30px rgba(239,68,68,0.15);}
+  .feat-card.c6{--card-gradient:linear-gradient(135deg,rgba(168,85,247,0.09),transparent);--card-border:rgba(168,85,247,0.35);--card-glow:0 0 30px rgba(168,85,247,0.15);}
+  .feat-card.c7{--card-gradient:linear-gradient(135deg,rgba(236,72,153,0.09),transparent);--card-border:rgba(236,72,153,0.35);--card-glow:0 0 30px rgba(236,72,153,0.15);}
+  .feat-card.c8{--card-gradient:linear-gradient(135deg,rgba(20,184,166,0.09),transparent);--card-border:rgba(20,184,166,0.35);--card-glow:0 0 30px rgba(20,184,166,0.15);}
 
   .feat-icon-wrap {
-    width: 50px; height: 50px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.4rem;
-    margin-bottom: 14px;
-    position: relative;
-    z-index: 1;
-    transition: transform 0.3s ease;
+    width:50px;height:50px;border-radius:14px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.4rem;margin-bottom:14px;
+    position:relative;z-index:1;transition:transform 0.3s ease;
   }
-
   .feat-card:hover .feat-icon-wrap { transform: scale(1.15) rotate(-4deg); }
+  .feat-card.c1 .feat-icon-wrap{background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.2);}
+  .feat-card.c2 .feat-icon-wrap{background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.2);}
+  .feat-card.c3 .feat-icon-wrap{background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.2);}
+  .feat-card.c4 .feat-icon-wrap{background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2);}
+  .feat-card.c5 .feat-icon-wrap{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.2);}
+  .feat-card.c6 .feat-icon-wrap{background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.2);}
+  .feat-card.c7 .feat-icon-wrap{background:rgba(236,72,153,0.12);border:1px solid rgba(236,72,153,0.2);}
+  .feat-card.c8 .feat-icon-wrap{background:rgba(20,184,166,0.12);border:1px solid rgba(20,184,166,0.2);}
 
-  .feat-card.c1 .feat-icon-wrap { background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.2); }
-  .feat-card.c2 .feat-icon-wrap { background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.2); }
-  .feat-card.c3 .feat-icon-wrap { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.2); }
-  .feat-card.c4 .feat-icon-wrap { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.2); }
-  .feat-card.c5 .feat-icon-wrap { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.2); }
-  .feat-card.c6 .feat-icon-wrap { background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.2); }
-  .feat-card.c7 .feat-icon-wrap { background: rgba(236,72,153,0.12); border: 1px solid rgba(236,72,153,0.2); }
-  .feat-card.c8 .feat-icon-wrap { background: rgba(20,184,166,0.12); border: 1px solid rgba(20,184,166,0.2); }
+  .feat-title{font-size:0.98rem;font-weight:700;color:#f1f5f9;margin-bottom:6px;position:relative;z-index:1;}
+  .feat-desc{font-size:0.8rem;color:#475569;line-height:1.5;position:relative;z-index:1;}
+  .feat-arrow{position:absolute;top:18px;right:18px;color:#1e293b;font-size:0.9rem;transition:all 0.3s ease;z-index:1;}
+  .feat-card:hover .feat-arrow{color:#94a3b8;transform:translate(3px,-3px);}
 
-  .feat-title {
-    font-size: 0.98rem;
-    font-weight: 700;
-    color: #f1f5f9;
-    margin-bottom: 6px;
-    position: relative;
-    z-index: 1;
-  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);} }
 
-  .feat-desc {
-    font-size: 0.8rem;
-    color: #475569;
-    line-height: 1.5;
-    position: relative;
-    z-index: 1;
-  }
-
-  .feat-arrow {
-    position: absolute;
-    top: 18px; right: 18px;
-    color: #1e293b;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-    z-index: 1;
-  }
-
-  .feat-card:hover .feat-arrow {
-    color: #94a3b8;
-    transform: translate(3px, -3px);
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  @media (max-width: 480px) {
-    .stats-band { grid-template-columns: repeat(2, 1fr); }
-    .stat-item:nth-child(2) { border-right: none; }
-    .stat-item:nth-child(1),
-    .stat-item:nth-child(2) { border-bottom: 1px solid rgba(255,255,255,0.06); }
+  @media (max-width:480px) {
+    .stats-band{grid-template-columns:repeat(2,1fr);}
+    .stat-item:nth-child(2){border-right:none;}
+    .stat-item:nth-child(1),.stat-item:nth-child(2){border-bottom:1px solid rgba(255,255,255,0.06);}
   }
 `;
 
-// ===== FLOATING MEDICAL ICONS DATA =====
 const FLOAT_ICONS = [
-  { emoji: '💊', x: 8,  y: 15, dur: 6.5, delay: 0    },
-  { emoji: '🏥', x: 88, y: 20, dur: 7.2, delay: 1.2  },
-  { emoji: '🩺', x: 15, y: 60, dur: 8.0, delay: 0.5  },
-  { emoji: '🧬', x: 80, y: 55, dur: 6.8, delay: 2.0  },
-  { emoji: '💉', x: 5,  y: 80, dur: 7.5, delay: 1.8  },
-  { emoji: '🩻', x: 92, y: 75, dur: 6.2, delay: 0.8  },
-  { emoji: '🧪', x: 50, y: 8,  dur: 7.8, delay: 3.0  },
-  { emoji: '❤️', x: 70, y: 88, dur: 6.0, delay: 1.5  },
-  { emoji: '🩹', x: 30, y: 85, dur: 7.3, delay: 2.5  },
-  { emoji: '🔬', x: 55, y: 92, dur: 8.2, delay: 0.3  },
+  { emoji: '💊', x: 6,  y: 12, dur: 6.5, delay: 0,   size: 2.0 },
+  { emoji: '🏥', x: 87, y: 18, dur: 7.2, delay: 1.2, size: 2.2 },
+  { emoji: '🩺', x: 13, y: 58, dur: 8.0, delay: 0.5, size: 1.8 },
+  { emoji: '🧬', x: 82, y: 52, dur: 6.8, delay: 2.0, size: 2.0 },
+  { emoji: '💉', x: 4,  y: 78, dur: 7.5, delay: 1.8, size: 1.7 },
+  { emoji: '🩻', x: 91, y: 72, dur: 6.2, delay: 0.8, size: 2.1 },
+  { emoji: '🧪', x: 48, y: 6,  dur: 7.8, delay: 3.0, size: 1.9 },
+  { emoji: '❤️', x: 68, y: 86, dur: 6.0, delay: 1.5, size: 2.3 },
+  { emoji: '🩹', x: 28, y: 88, dur: 7.3, delay: 2.5, size: 1.6 },
+  { emoji: '🔬', x: 54, y: 93, dur: 8.2, delay: 0.3, size: 2.0 },
+  { emoji: '🫀', x: 20, y: 30, dur: 7.0, delay: 1.0, size: 2.4 },
+  { emoji: '🧠', x: 75, y: 35, dur: 6.6, delay: 2.2, size: 1.8 },
 ];
 
+// Real anatomical heart SVG
+function AnatomicalHeart() {
+  return (
+    <div className="heart-wrapper">
+      <div className="heart-pulse" />
+      <div className="heart-pulse" style={{animationDelay:'0.7s'}} />
+      <svg viewBox="0 0 260 240" width="260" height="240" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          {/* Heart muscle gradient */}
+          <radialGradient id="hg1" cx="40%" cy="35%" r="65%">
+            <stop offset="0%"   stopColor="#ff6b6b"/>
+            <stop offset="40%"  stopColor="#dc2626"/>
+            <stop offset="75%"  stopColor="#991b1b"/>
+            <stop offset="100%" stopColor="#7f1d1d"/>
+          </radialGradient>
+          {/* Aorta gradient - bright red */}
+          <linearGradient id="aortaG" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"  stopColor="#ef4444"/>
+            <stop offset="100%" stopColor="#dc2626"/>
+          </linearGradient>
+          {/* Vein gradient - blue/purple */}
+          <linearGradient id="veinG" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"  stopColor="#6366f1"/>
+            <stop offset="100%" stopColor="#4338ca"/>
+          </linearGradient>
+          {/* Pulmonary artery - lighter red */}
+          <linearGradient id="pulG" x1="0%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%"  stopColor="#f87171"/>
+            <stop offset="100%" stopColor="#fca5a5"/>
+          </linearGradient>
+          {/* Dark shadow for depth */}
+          <radialGradient id="shadowG" cx="50%" cy="80%" r="50%">
+            <stop offset="0%"   stopColor="rgba(0,0,0,0.5)"/>
+            <stop offset="100%" stopColor="rgba(0,0,0,0)"/>
+          </radialGradient>
+          {/* Highlight */}
+          <radialGradient id="highlightG" cx="30%" cy="25%" r="40%">
+            <stop offset="0%"   stopColor="rgba(255,180,180,0.45)"/>
+            <stop offset="100%" stopColor="rgba(255,100,100,0)"/>
+          </radialGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="softGlow">
+            <feGaussianBlur stdDeviation="1.5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        {/* ====== MAIN HEART BODY ====== */}
+        {/* Left ventricle (larger, bottom-left) */}
+        <ellipse cx="108" cy="162" rx="52" ry="62" fill="url(#hg1)" />
+        {/* Right ventricle (smaller, right) */}
+        <ellipse cx="158" cy="155" rx="40" ry="52" fill="#c0392b" opacity="0.9"/>
+        {/* Left atrium (top-left bump) */}
+        <ellipse cx="98" cy="100" rx="42" ry="36" fill="#dc2626" />
+        {/* Right atrium (top-right bump) */}
+        <ellipse cx="158" cy="105" rx="35" ry="30" fill="#b91c1c" />
+
+        {/* Septum line */}
+        <line x1="138" y1="95" x2="130" y2="210" stroke="#7f1d1d" strokeWidth="3" opacity="0.6"/>
+
+        {/* ====== AORTA (thick red arch going up-right) ====== */}
+        <path d="M 125 82 C 120 55, 105 38, 95 28 C 85 18, 72 15, 68 20 C 62 27, 70 38, 82 42 C 92 46, 105 50, 118 70"
+              fill="none" stroke="url(#aortaG)" strokeWidth="14" strokeLinecap="round" filter="url(#softGlow)"/>
+        {/* Aorta highlight */}
+        <path d="M 122 82 C 117 58, 104 42, 94 32 C 85 23, 73 19, 70 23"
+              fill="none" stroke="rgba(255,150,150,0.5)" strokeWidth="5" strokeLinecap="round"/>
+
+        {/* ====== PULMONARY ARTERY (left, blue-ish) ====== */}
+        <path d="M 138 80 C 142 58, 148 44, 152 32 C 155 22, 160 16, 168 14 C 175 12, 182 16, 186 22"
+              fill="none" stroke="#6366f1" strokeWidth="11" strokeLinecap="round" filter="url(#softGlow)"/>
+        <path d="M 140 80 C 144 60, 150 46, 154 34"
+              fill="none" stroke="rgba(150,160,255,0.5)" strokeWidth="4" strokeLinecap="round"/>
+
+        {/* ====== SUPERIOR VENA CAVA (top right, blue) ====== */}
+        <path d="M 170 95 C 178 78, 182 60, 185 44 C 187 32, 185 24, 188 18"
+              fill="none" stroke="#4338ca" strokeWidth="10" strokeLinecap="round"/>
+        <path d="M 172 95 C 180 80, 183 63, 186 48"
+              fill="none" stroke="rgba(130,140,255,0.4)" strokeWidth="4" strokeLinecap="round"/>
+
+        {/* ====== INFERIOR VENA CAVA (bottom, blue) ====== */}
+        <path d="M 162 195 C 162 210, 164 222, 168 232"
+              fill="none" stroke="#4338ca" strokeWidth="10" strokeLinecap="round"/>
+
+        {/* ====== PULMONARY VEINS (left side, red) ====== */}
+        <path d="M 78 108 C 58 105, 42 100, 30 96 C 20 93, 14 90, 10 88"
+              fill="none" stroke="#ef4444" strokeWidth="7" strokeLinecap="round"/>
+        <path d="M 80 122 C 60 120, 44 116, 32 112"
+              fill="none" stroke="#ef4444" strokeWidth="5" strokeLinecap="round"/>
+
+        {/* ====== RIGHT PULMONARY VEINS ====== */}
+        <path d="M 186 108 C 202 104, 216 100, 228 96"
+              fill="none" stroke="#ef4444" strokeWidth="6" strokeLinecap="round"/>
+        <path d="M 184 122 C 200 118, 214 114, 226 110"
+              fill="none" stroke="#ef4444" strokeWidth="4" strokeLinecap="round"/>
+
+        {/* ====== CORONARY ARTERIES (on heart surface) ====== */}
+        {/* Left coronary - wraps around left ventricle */}
+        <path d="M 118 118 C 105 125, 92 135, 82 148 C 74 160, 72 175, 78 188 C 85 202, 96 210, 108 212"
+              fill="none" stroke="#ef4444" strokeWidth="4" strokeLinecap="round" filter="url(#softGlow)" opacity="0.9"/>
+        {/* Right coronary */}
+        <path d="M 148 118 C 160 128, 168 140, 170 155 C 172 168, 166 180, 158 188"
+              fill="none" stroke="#f87171" strokeWidth="3.5" strokeLinecap="round" opacity="0.8"/>
+        {/* Circumflex branch */}
+        <path d="M 108 135 C 100 142, 95 152, 95 162 C 95 172, 98 182, 105 190"
+              fill="none" stroke="#fca5a5" strokeWidth="2.5" strokeLinecap="round" opacity="0.7"/>
+        {/* Diagonal branch */}
+        <path d="M 115 148 C 105 158, 98 170, 96 182"
+              fill="none" stroke="#fca5a5" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+
+        {/* ====== SHADOW / DEPTH ====== */}
+        <ellipse cx="130" cy="210" rx="65" ry="20" fill="url(#shadowG)" opacity="0.5"/>
+
+        {/* ====== HIGHLIGHT ====== */}
+        <ellipse cx="95" cy="105" rx="38" ry="28" fill="url(#highlightG)"/>
+
+        {/* ====== VALVE INDICATORS ====== */}
+        {/* Mitral valve hint */}
+        <ellipse cx="115" cy="133" rx="12" ry="8" fill="none" stroke="#fbbf24" strokeWidth="1.5" opacity="0.6" strokeDasharray="3,2"/>
+        {/* Aortic valve hint */}
+        <circle cx="128" cy="95" r="8" fill="none" stroke="#fbbf24" strokeWidth="1.5" opacity="0.5" strokeDasharray="3,2"/>
+        {/* Pulmonary valve hint */}
+        <circle cx="143" cy="88" r="6" fill="none" stroke="#a78bfa" strokeWidth="1.5" opacity="0.5" strokeDasharray="3,2"/>
+
+        {/* ====== SMALL LABEL DOTS (like anatomy diagram) ====== */}
+        <circle cx="128" cy="95"  r="2.5" fill="#fbbf24" opacity="0.9"/>
+        <circle cx="68"  cy="20"  r="2.5" fill="#ef4444" opacity="0.9"/>
+        <circle cx="186" cy="22"  r="2.5" fill="#6366f1" opacity="0.9"/>
+        <circle cx="168" cy="232" r="2.5" fill="#4338ca" opacity="0.9"/>
+      </svg>
+    </div>
+  );
+}
+
 function Home() {
-  const canvasRef  = useRef(null);
-  const heartRef   = useRef(null);
-  const scrollYRef = useRef(0);
+  const canvasRef    = useRef(null);
+  const scrollYRef   = useRef(0);
   const animFrameRef = useRef(null);
-  const heartAnimRef = useRef(null);
-  const mouseRef   = useRef({ x: 0, y: 0 });
-  const iconsRef   = useRef([]);
+  const iconsRef     = useRef([]);
 
   const [stats, setStats] = useState({ medicines: 0, features: 0, accuracy: 0, aiSupport: 0 });
 
-  // ===== STAR BACKGROUND =====
+  // Star background
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx    = canvas.getContext('2d');
@@ -438,232 +430,110 @@ function Home() {
     let height = canvas.height = window.innerHeight;
 
     const stars = Array.from({ length: 200 }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
+      x: Math.random() * width, y: Math.random() * height,
       r: Math.random() * 1.6 + 0.3,
       speed: Math.random() * 0.006 + 0.002,
       phase: Math.random() * Math.PI * 2,
     }));
 
     let shootingStar = null, lastShot = -9999;
-
     function spawnShootingStar(now) {
-      shootingStar = {
-        x: Math.random() * width * 0.7,
-        y: Math.random() * height * 0.4,
-        vx: 7 + Math.random() * 5,
-        vy: 4 + Math.random() * 3,
-        len: 130 + Math.random() * 80,
-        startTime: now,
-        duration:  900 + Math.random() * 400,
-      };
+      shootingStar = { x: Math.random()*width*0.7, y: Math.random()*height*0.4, vx:7+Math.random()*5, vy:4+Math.random()*3, len:130+Math.random()*80, startTime:now, duration:900+Math.random()*400 };
       lastShot = now;
     }
-
     function draw(now) {
       const parallax = scrollYRef.current * 0.12;
-      ctx.fillStyle = '#030306';
-      ctx.fillRect(0, 0, width, height);
-
+      ctx.fillStyle = '#030306'; ctx.fillRect(0,0,width,height);
       stars.forEach(s => {
-        const alpha = 0.25 + 0.75 * (0.5 + 0.5 * Math.sin(now * s.speed + s.phase));
-        const yPos  = ((s.y - parallax) % height + height) % height;
-        ctx.beginPath();
-        ctx.arc(s.x, yPos, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(2)})`;
-        ctx.fill();
+        const alpha = 0.25 + 0.75*(0.5+0.5*Math.sin(now*s.speed+s.phase));
+        const yPos  = ((s.y-parallax)%height+height)%height;
+        ctx.beginPath(); ctx.arc(s.x,yPos,s.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(255,255,255,${alpha.toFixed(2)})`; ctx.fill();
       });
-
-      if (now - lastShot > 5000) spawnShootingStar(now);
+      if (now-lastShot>5000) spawnShootingStar(now);
       if (shootingStar) {
-        const elapsed  = now - shootingStar.startTime;
-        const progress = elapsed / shootingStar.duration;
-        if (progress >= 1) {
-          shootingStar = null;
-        } else {
-          const sx   = shootingStar.x + shootingStar.vx * elapsed * 0.12;
-          const sy   = shootingStar.y + shootingStar.vy * elapsed * 0.12;
-          const tailX = sx - shootingStar.len * 0.85;
-          const tailY = sy - shootingStar.len * 0.5;
-          const alpha = progress < 0.65 ? 1 : 1 - (progress - 0.65) / 0.35;
-          const grad = ctx.createLinearGradient(tailX, tailY, sx, sy);
-          grad.addColorStop(0,   `rgba(255,255,255,0)`);
-          grad.addColorStop(0.6, `rgba(180,220,255,${(alpha * 0.5).toFixed(2)})`);
-          grad.addColorStop(1,   `rgba(255,255,255,${alpha.toFixed(2)})`);
-          ctx.beginPath(); ctx.moveTo(tailX, tailY); ctx.lineTo(sx, sy);
-          ctx.strokeStyle = grad; ctx.lineWidth = 2; ctx.stroke();
-          ctx.beginPath(); ctx.arc(sx, sy, 2.5, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(2)})`; ctx.fill();
+        const elapsed=now-shootingStar.startTime, progress=elapsed/shootingStar.duration;
+        if (progress>=1) { shootingStar=null; } else {
+          const sx=shootingStar.x+shootingStar.vx*elapsed*0.12, sy=shootingStar.y+shootingStar.vy*elapsed*0.12;
+          const tailX=sx-shootingStar.len*0.85, tailY=sy-shootingStar.len*0.5;
+          const alpha=progress<0.65?1:1-(progress-0.65)/0.35;
+          const grad=ctx.createLinearGradient(tailX,tailY,sx,sy);
+          grad.addColorStop(0,'rgba(255,255,255,0)'); grad.addColorStop(0.6,`rgba(180,220,255,${(alpha*0.5).toFixed(2)})`); grad.addColorStop(1,`rgba(255,255,255,${alpha.toFixed(2)})`);
+          ctx.beginPath(); ctx.moveTo(tailX,tailY); ctx.lineTo(sx,sy); ctx.strokeStyle=grad; ctx.lineWidth=2; ctx.stroke();
+          ctx.beginPath(); ctx.arc(sx,sy,2.5,0,Math.PI*2); ctx.fillStyle=`rgba(255,255,255,${alpha.toFixed(2)})`; ctx.fill();
         }
       }
       animFrameRef.current = requestAnimationFrame(draw);
     }
-
     animFrameRef.current = requestAnimationFrame(draw);
-    const onScroll = () => { scrollYRef.current = window.scrollY; };
-    const onResize = () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; };
-    window.addEventListener('scroll', onScroll);
-    window.addEventListener('resize', onResize);
-    return () => { cancelAnimationFrame(animFrameRef.current); window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onResize); };
+    const onScroll=()=>{ scrollYRef.current=window.scrollY; };
+    const onResize=()=>{ width=canvas.width=window.innerWidth; height=canvas.height=window.innerHeight; };
+    window.addEventListener('scroll',onScroll); window.addEventListener('resize',onResize);
+    return ()=>{ cancelAnimationFrame(animFrameRef.current); window.removeEventListener('scroll',onScroll); window.removeEventListener('resize',onResize); };
   }, []);
 
-  // ===== 3D HEART (Canvas-based) =====
-  useEffect(() => {
-    const canvas = heartRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width  = 220;
-    const H = canvas.height = 200;
-    let angle = 0;
-
-    function heartX(t) { return 16 * Math.pow(Math.sin(t), 3); }
-    function heartY(t) { return -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t)); }
-
-    function drawHeart(now) {
-      ctx.clearRect(0, 0, W, H);
-      angle += 0.012;
-
-      const cx = W / 2, cy = H / 2 + 10;
-      const scale = 7.5 + Math.sin(now * 0.001) * 0.6;
-      const tilt  = Math.sin(angle) * 0.18;
-
-      // Glow layers
-      for (let g = 3; g >= 1; g--) {
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(tilt);
-        ctx.beginPath();
-        for (let i = 0; i <= 628; i++) {
-          const t  = (i / 628) * Math.PI * 2;
-          const px = heartX(t) * (scale + g * 2);
-          const py = heartY(t) * (scale + g * 2);
-          i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-        }
-        ctx.closePath();
-        const glowGrad = ctx.createRadialGradient(0, -10, 0, 0, -10, 90 + g * 18);
-        glowGrad.addColorStop(0, `rgba(99,102,241,${0.07 / g})`);
-        glowGrad.addColorStop(1, 'rgba(99,102,241,0)');
-        ctx.fillStyle = glowGrad;
-        ctx.fill();
-        ctx.restore();
-      }
-
-      // Main heart fill
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(tilt);
-      ctx.beginPath();
-      for (let i = 0; i <= 628; i++) {
-        const t  = (i / 628) * Math.PI * 2;
-        const px = heartX(t) * scale;
-        const py = heartY(t) * scale;
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-      }
-      ctx.closePath();
-      const fillGrad = ctx.createLinearGradient(-80, -80, 80, 80);
-      fillGrad.addColorStop(0,   '#6366f1');
-      fillGrad.addColorStop(0.4, '#818cf8');
-      fillGrad.addColorStop(0.7, '#06b6d4');
-      fillGrad.addColorStop(1,   '#10b981');
-      ctx.fillStyle = fillGrad;
-      ctx.fill();
-
-      // Shine
-      const shine = ctx.createLinearGradient(-40, -60, 20, 0);
-      shine.addColorStop(0, 'rgba(255,255,255,0.25)');
-      shine.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.fillStyle = shine;
-      ctx.fill();
-
-      // Stroke
-      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-      ctx.lineWidth   = 1.2;
-      ctx.stroke();
-      ctx.restore();
-
-      heartAnimRef.current = requestAnimationFrame(drawHeart);
-    }
-
-    heartAnimRef.current = requestAnimationFrame(drawHeart);
-    return () => cancelAnimationFrame(heartAnimRef.current);
-  }, []);
-
-  // ===== MOUSE PARALLAX FOR FLOATING ICONS =====
+  // Mouse parallax for floating icons
   useEffect(() => {
     const onMove = (e) => {
-      mouseRef.current = { x: e.clientX / window.innerWidth - 0.5, y: e.clientY / window.innerHeight - 0.5 };
+      const mx = e.clientX/window.innerWidth - 0.5;
+      const my = e.clientY/window.innerHeight - 0.5;
       iconsRef.current.forEach((el, i) => {
         if (!el) return;
-        const depth  = 0.5 + (i % 3) * 0.4;
-        const moveX  = mouseRef.current.x * 28 * depth;
-        const moveY  = mouseRef.current.y * 18 * depth;
-        el.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        const depth = 0.4 + (i % 4) * 0.3;
+        el.style.transform = `translate(${mx*30*depth}px, ${my*20*depth}px)`;
       });
     };
     window.addEventListener('mousemove', onMove);
     return () => window.removeEventListener('mousemove', onMove);
   }, []);
 
-  // ===== SCROLL REVEAL FOR CARDS =====
+  // Scroll reveal cards
   useEffect(() => {
-    const cards = document.querySelectorAll('.feat-card');
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry, idx) => {
+      entries.forEach(entry => {
         if (entry.isIntersecting) {
-          const card = entry.target;
-          const delay = (parseInt(card.dataset.index || 0) % 4) * 80;
+          const card  = entry.target;
+          const delay = (parseInt(card.dataset.index||0) % 4) * 80;
           setTimeout(() => card.classList.add('visible'), delay);
           observer.unobserve(card);
         }
       });
     }, { threshold: 0.1 });
-    cards.forEach(c => observer.observe(c));
+    document.querySelectorAll('.feat-card').forEach(c => observer.observe(c));
     return () => observer.disconnect();
   }, []);
 
-  // ===== COUNTING STATS =====
+  // Counting stats
   useEffect(() => {
-    const targets = { medicines: 2847, features: 8, accuracy: 99, aiSupport: 24 };
-    const med  = setInterval(() => setStats(p => { if (p.medicines >= targets.medicines) { clearInterval(med); return p; } return { ...p, medicines: p.medicines + Math.min(31, targets.medicines - p.medicines) }; }), 20);
-    const feat = setInterval(() => setStats(p => { if (p.features >= targets.features) { clearInterval(feat); return p; } return { ...p, features: p.features + 1 }; }), 200);
-    const acc  = setInterval(() => setStats(p => { if (p.accuracy >= targets.accuracy) { clearInterval(acc); return p; } return { ...p, accuracy: p.accuracy + Math.min(2, targets.accuracy - p.accuracy) }; }), 30);
-    const ai   = setInterval(() => setStats(p => { if (p.aiSupport >= targets.aiSupport) { clearInterval(ai); return p; } return { ...p, aiSupport: p.aiSupport + 1 }; }), 80);
-    return () => { clearInterval(med); clearInterval(feat); clearInterval(acc); clearInterval(ai); };
+    const targets = { medicines:2847, features:8, accuracy:99, aiSupport:24 };
+    const med  = setInterval(()=>setStats(p=>{ if(p.medicines>=targets.medicines){clearInterval(med);return p;} return{...p,medicines:p.medicines+Math.min(31,targets.medicines-p.medicines)}; }),20);
+    const feat = setInterval(()=>setStats(p=>{ if(p.features>=targets.features){clearInterval(feat);return p;} return{...p,features:p.features+1}; }),200);
+    const acc  = setInterval(()=>setStats(p=>{ if(p.accuracy>=targets.accuracy){clearInterval(acc);return p;} return{...p,accuracy:p.accuracy+Math.min(2,targets.accuracy-p.accuracy)}; }),30);
+    const ai   = setInterval(()=>setStats(p=>{ if(p.aiSupport>=targets.aiSupport){clearInterval(ai);return p;} return{...p,aiSupport:p.aiSupport+1}; }),80);
+    return ()=>{ clearInterval(med);clearInterval(feat);clearInterval(acc);clearInterval(ai); };
   }, []);
 
   const features = [
-    { icon: '💊', title: 'Medicine Tracker',   desc: 'Add, manage and track all your daily medications with smart reminders',      color: 'c1', link: '/dashboard'     },
-    { icon: '🏥', title: 'Nearby Hospitals',   desc: 'Find hospitals, clinics and pharmacies near your location instantly',         color: 'c2', link: '/hospitals'     },
-    { icon: '📅', title: 'Medicine Calendar',  desc: 'Visual calendar view of your complete medication schedule',                   color: 'c3', link: '/calendar'      },
-    { icon: '🚨', title: 'Emergency Contacts', desc: 'Quick access to emergency contacts and SOS calling feature',                  color: 'c5', link: '/emergency'     },
-    { icon: '📈', title: 'Health Stats',       desc: 'Charts and analytics of your health and medication adherence',                color: 'c4', link: '/health-stats'  },
-    { icon: '💧', title: 'Water Tracker',      desc: 'Track daily water intake and stay hydrated for better health',                color: 'c6', link: '/water-tracker' },
-    { icon: '🌡️', title: 'Symptoms Tracker',  desc: 'Log and monitor your symptoms with AI-powered insights',                      color: 'c7', link: '/symptoms'      },
-    { icon: '👨‍👩‍👧', title: 'Family Medicines', desc: 'Manage medications for your entire family in one place',                 color: 'c8', link: '/family'        },
+    { icon:'💊', title:'Medicine Tracker',   desc:'Add, manage and track all your daily medications with smart reminders',      color:'c1', link:'/dashboard'     },
+    { icon:'🏥', title:'Nearby Hospitals',   desc:'Find hospitals, clinics and pharmacies near your location instantly',         color:'c2', link:'/hospitals'     },
+    { icon:'📅', title:'Medicine Calendar',  desc:'Visual calendar view of your complete medication schedule',                   color:'c3', link:'/calendar'      },
+    { icon:'🚨', title:'Emergency Contacts', desc:'Quick access to emergency contacts and SOS calling feature',                  color:'c5', link:'/emergency'     },
+    { icon:'📈', title:'Health Stats',       desc:'Charts and analytics of your health and medication adherence',                color:'c4', link:'/health-stats'  },
+    { icon:'💧', title:'Water Tracker',      desc:'Track daily water intake and stay hydrated for better health',                color:'c6', link:'/water-tracker' },
+    { icon:'🌡️', title:'Symptoms Tracker',  desc:'Log and monitor your symptoms with AI-powered insights',                      color:'c7', link:'/symptoms'      },
+    { icon:'👨‍👩‍👧', title:'Family Medicines', desc:'Manage medications for your entire family in one place',                 color:'c8', link:'/family'        },
   ];
 
   return (
     <>
       <style>{styles}</style>
-
-      {/* Star background */}
       <canvas ref={canvasRef} id="star-canvas" />
 
-      {/* Floating Medical Icons Layer */}
+      {/* Glowing floating medical icons */}
       <div className="floating-icons-layer">
         {FLOAT_ICONS.map((ic, i) => (
-          <div
-            key={i}
-            ref={el => iconsRef.current[i] = el}
-            className="float-icon"
-            style={{
-              left: `${ic.x}%`,
-              top:  `${ic.y}%`,
-              animationDuration: `${ic.dur}s`,
-              animationDelay: `${ic.delay}s`,
-              fontSize: `${1.2 + (i % 3) * 0.5}rem`,
-            }}
-          >
+          <div key={i} ref={el=>iconsRef.current[i]=el} className="float-icon"
+            style={{ left:`${ic.x}%`, top:`${ic.y}%`, animationDuration:`${ic.dur}s`, animationDelay:`${ic.delay}s`, fontSize:`${ic.size}rem` }}>
             {ic.emoji}
           </div>
         ))}
@@ -676,8 +546,8 @@ function Home() {
             AI-Powered Health Assistant — Always On
           </div>
 
-          {/* 3D Rotating Heart */}
-          <canvas ref={heartRef} id="heart-canvas" width="220" height="200" />
+          {/* Real Anatomical Heart */}
+          <AnatomicalHeart />
 
           <h1 className="hero-title">
             <span className="line1">Your Personal</span>
@@ -694,22 +564,10 @@ function Home() {
           </div>
 
           <div className="stats-band">
-            <div className="stat-item">
-              <span className="stat-num">{stats.medicines.toLocaleString()}+</span>
-              <span className="stat-lbl">Medicines Tracked</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-num">{stats.features}</span>
-              <span className="stat-lbl">Features</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-num">{stats.accuracy}%</span>
-              <span className="stat-lbl">Accuracy</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-num">{stats.aiSupport}/7</span>
-              <span className="stat-lbl">AI Support</span>
-            </div>
+            <div className="stat-item"><span className="stat-num">{stats.medicines.toLocaleString()}+</span><span className="stat-lbl">Medicines Tracked</span></div>
+            <div className="stat-item"><span className="stat-num">{stats.features}</span><span className="stat-lbl">Features</span></div>
+            <div className="stat-item"><span className="stat-num">{stats.accuracy}%</span><span className="stat-lbl">Accuracy</span></div>
+            <div className="stat-item"><span className="stat-num">{stats.aiSupport}/7</span><span className="stat-lbl">AI Support</span></div>
           </div>
         </div>
 
@@ -718,7 +576,7 @@ function Home() {
             <h2 className="section-title">Everything You Need 🚀</h2>
             <p className="section-sub">8 powerful features to keep you and your family healthy</p>
             <div className="features-grid">
-              {features.map((f, i) => (
+              {features.map((f,i) => (
                 <Link to={f.link} key={i} data-index={i} className={`feat-card ${f.color}`}>
                   <span className="feat-arrow">↗</span>
                   <div className="feat-icon-wrap">{f.icon}</div>
