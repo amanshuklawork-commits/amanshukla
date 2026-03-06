@@ -61,7 +61,7 @@ const styles = `
     transform: translate(-50%, -52%);
     width: 520px; height: 520px;
     object-fit: contain;
-    opacity: 0.11;
+    opacity: 0.55;
     pointer-events: none;
     z-index: 0;
     transition: opacity 0.6s ease, filter 0.6s ease, transform 0.15s ease-out;
@@ -73,7 +73,7 @@ const styles = `
   }
 
   .hero-heart-bg.active {
-    opacity: 0.22;
+    opacity: 0.75;
     filter:
       drop-shadow(0 0 50px rgba(220,38,38,0.85))
       drop-shadow(0 0 100px rgba(220,38,38,0.4))
