@@ -28,22 +28,19 @@ app.use(express.json());
 
 // ==================== NTFY NOTIFICATION HELPER ====================
 async function sendNtfyNotification({ topic, title, message, priority = 'default' }) {
-  if (!topic) {
-    console.log('Ntfy: topic missing, skipping');
-    return;
-  }
+  if (!topic) return;
   try {
-    const payload = JSON.stringify({ title, message, priority });
-    console.log('Sending ntfy payload:', payload);
-    
     const res = await fetch('https://ntfy.sh/' + topic, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: payload
+      headers: {
+        'Title': title,
+        'Priority': priority,
+        'Content-Type': 'text/plain'
+      },
+      body: message
     });
-    
     const responseText = await res.text();
-    console.log(`Ntfy Status: ${res.status} | Response: ${responseText}`);
+    console.log('Ntfy Status:', res.status, '| Topic:', topic);
   } catch (err) {
     console.error('Ntfy error:', err.message);
   }
@@ -81,7 +78,7 @@ app.post('/api/medicines', async (req, res) => {
     await sendNtfyNotification({
       topic: ntfyTopic,
       title: 'Medicine Added - MediRemind',
-      message: name + ' (' + dosage + ') added! Reminder: ' + (Array.isArray(time) ? time.join(', ') : time),
+      message: name + ' (' + dosage + ') added!\nReminder set for: ' + (Array.isArray(time) ? time.join(', ') : time) + '\nFrequency: ' + frequency,
       priority: 'default'
     });
   }
@@ -103,14 +100,17 @@ app.delete('/api/medicines/:id', (req, res) => {
 setInterval(async () => {
   const now = new Date();
   const currentTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  console.log('Checking reminders at:', currentTime, '| Total medicines:', medicines.length);
 
   for (const med of medicines) {
     const times = Array.isArray(med.time) ? med.time : [med.time];
+    console.log('Medicine:', med.name, '| Times:', times, '| Match:', times.includes(currentTime));
     if (times.includes(currentTime) && med.ntfyTopic) {
+      console.log('Sending reminder for:', med.name);
       await sendNtfyNotification({
         topic: med.ntfyTopic,
         title: 'Medicine Reminder - MediRemind',
-        message: 'Time to take ' + med.name + '! Dosage: ' + med.dosage,
+        message: 'Time to take ' + med.name + '!\nDosage: ' + med.dosage + '\nFrequency: ' + med.frequency + '\n\nDont skip your dose!',
         priority: 'urgent'
       });
     }
