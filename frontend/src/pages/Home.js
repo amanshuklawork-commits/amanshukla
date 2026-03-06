@@ -65,6 +65,7 @@ const styles = `
     pointer-events: none;
     z-index: 0;
     transition: opacity 0.6s ease, filter 0.6s ease, transform 0.15s ease-out;
+    mix-blend-mode: screen;
     filter:
       drop-shadow(0 0 20px rgba(220,38,38,0.3))
       saturate(0.7) brightness(0.65);
