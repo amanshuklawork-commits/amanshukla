@@ -35,7 +35,8 @@ async function sendNtfyNotification({ topic, title, message, priority = 'default
       headers: {
         'Title': title,
         'Priority': priority,
-        'Content-Type': 'text/plain'
+        'Content-Type': 'text/plain; charset=utf-8',
+        'X-Title': title
       },
       body: message
     });
@@ -122,7 +123,7 @@ app.post('/api/medicines', async (req, res) => {
   if (ntfyTopic) {
     await sendNtfyNotification({
       topic: ntfyTopic,
-      title: '💊 Medicine Added - MediRemind',
+      title: 'Medicine Added - MediRemind',
       message:
         `${name} (${dosage}) added!\n` +
         `Reminder set for: ${normalizedTimes.join(', ')}\n` +
@@ -158,12 +159,12 @@ setInterval(async () => {
       console.log('🔔 Sending reminder for:', med.name);
       await sendNtfyNotification({
         topic: med.ntfyTopic,
-        title: '🔔 Medicine Reminder - MediRemind',
+        title: 'Medicine Reminder - MediRemind',
         message:
           `Time to take ${med.name}!\n` +
           `Dosage: ${med.dosage}\n` +
           `Frequency: ${med.frequency}\n\n` +
-          `Don't skip your dose! 💊`,
+          `Don't skip your dose!`,
         priority: 'urgent'
       });
     }
