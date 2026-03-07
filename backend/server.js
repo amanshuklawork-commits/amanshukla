@@ -39,11 +39,52 @@ async function sendNtfyNotification({ topic, title, message, priority = 'default
       },
       body: message
     });
-    const responseText = await res.text();
     console.log('Ntfy Status:', res.status, '| Topic:', topic);
   } catch (err) {
     console.error('Ntfy error:', err.message);
   }
+}
+
+// ==================== TIME HELPERS ====================
+
+// Get current IST time in 12hr format => "9:05 AM" or "1:30 PM"
+function getCurrentTime12hr() {
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  let hours   = now.getHours();
+  const mins  = String(now.getMinutes()).padStart(2, '0');
+  const ampm  = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  return `${hours}:${mins} ${ampm}`;
+}
+
+// Normalize any time string to "H:MM AM/PM" for comparison
+// Handles: "9:05 AM", "09:05 AM", "13:30" (24hr), "1:30 PM"
+function normalizeTime(t) {
+  if (!t) return '';
+  t = t.trim();
+
+  // Already has AM/PM
+  if (/AM|PM/i.test(t)) {
+    const match = t.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (match) {
+      const h    = parseInt(match[1]);
+      const m    = match[2];
+      const ampm = match[3].toUpperCase();
+      return `${h}:${m} ${ampm}`;
+    }
+  }
+
+  // 24hr format => convert to 12hr
+  const match24 = t.match(/^(\d{1,2}):(\d{2})$/);
+  if (match24) {
+    let h      = parseInt(match24[1]);
+    const m    = match24[2];
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${h}:${m} ${ampm}`;
+  }
+
+  return t;
 }
 
 // ==================== MEDICINE STORAGE ====================
@@ -61,24 +102,31 @@ app.post('/api/medicines', async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
+  // Normalize all times to 12hr on save
+  const rawTimes = Array.isArray(time) ? time : [time];
+  const normalizedTimes = rawTimes.map(normalizeTime);
+
   const newMedicine = {
     _id: (nextId++).toString(),
     name,
     dosage,
     frequency,
-    time: Array.isArray(time) ? time : [time],
+    time: normalizedTimes,
     ntfyTopic: ntfyTopic || '',
     createdAt: new Date().toISOString()
   };
 
   medicines.push(newMedicine);
-  console.log('Medicine added:', name, '| ntfyTopic:', ntfyTopic);
+  console.log('Medicine added:', name, '| Times (12hr):', normalizedTimes, '| ntfyTopic:', ntfyTopic);
 
   if (ntfyTopic) {
     await sendNtfyNotification({
       topic: ntfyTopic,
-      title: 'Medicine Added - MediRemind',
-      message: name + ' (' + dosage + ') added!\nReminder set for: ' + (Array.isArray(time) ? time.join(', ') : time) + '\nFrequency: ' + frequency,
+      title: '💊 Medicine Added - MediRemind',
+      message:
+        `${name} (${dosage}) added!\n` +
+        `Reminder set for: ${normalizedTimes.join(', ')}\n` +
+        `Frequency: ${frequency}`,
       priority: 'default'
     });
   }
@@ -88,9 +136,9 @@ app.post('/api/medicines', async (req, res) => {
 
 app.delete('/api/medicines/:id', (req, res) => {
   const id = req.params.id;
-  const initialLength = medicines.length;
+  const before = medicines.length;
   medicines = medicines.filter(med => med._id !== id);
-  if (medicines.length === initialLength) {
+  if (medicines.length === before) {
     return res.status(404).json({ error: 'Medicine not found' });
   }
   res.json({ message: 'Medicine deleted' });
@@ -98,19 +146,24 @@ app.delete('/api/medicines/:id', (req, res) => {
 
 // ==================== REMINDER CHECKER ====================
 setInterval(async () => {
-  const now = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
-  const currentTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  const currentTime = getCurrentTime12hr();
   console.log('Checking reminders at:', currentTime, '| Total medicines:', medicines.length);
 
   for (const med of medicines) {
     const times = Array.isArray(med.time) ? med.time : [med.time];
-    console.log('Medicine:', med.name, '| Times:', times, '| Match:', times.includes(currentTime));
-    if (times.includes(currentTime) && med.ntfyTopic) {
-      console.log('Sending reminder for:', med.name);
+    const match = times.includes(currentTime);
+    console.log('Medicine:', med.name, '| Times:', times, '| Current:', currentTime, '| Match:', match);
+
+    if (match && med.ntfyTopic) {
+      console.log('🔔 Sending reminder for:', med.name);
       await sendNtfyNotification({
         topic: med.ntfyTopic,
-        title: 'Medicine Reminder - MediRemind',
-        message: 'Time to take ' + med.name + '!\nDosage: ' + med.dosage + '\nFrequency: ' + med.frequency + '\n\nDont skip your dose!',
+        title: '🔔 Medicine Reminder - MediRemind',
+        message:
+          `Time to take ${med.name}!\n` +
+          `Dosage: ${med.dosage}\n` +
+          `Frequency: ${med.frequency}\n\n` +
+          `Don't skip your dose! 💊`,
         priority: 'urgent'
       });
     }

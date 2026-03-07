@@ -93,6 +93,7 @@ const styles = `
     font-family: 'Outfit', sans-serif;
     transition: all 0.3s ease;
     outline: none;
+    box-sizing: border-box;
   }
 
   .field-input::placeholder { color: #334155; }
@@ -114,6 +115,133 @@ const styles = `
     padding-left: 2px;
   }
 
+  /* ===== 12HR TIME PICKER ===== */
+  .time-picker-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .time-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 10px 14px;
+    transition: border-color 0.3s ease;
+  }
+
+  .time-picker-row:focus-within {
+    border-color: rgba(99,102,241,0.5);
+    background: rgba(99,102,241,0.04);
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.08);
+  }
+
+  .time-select {
+    background: transparent;
+    border: none;
+    color: #f1f5f9;
+    font-size: 1rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    outline: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .time-select option { background: #0f0f1a; color: #f1f5f9; }
+
+  .time-colon {
+    color: #6366f1;
+    font-weight: 900;
+    font-size: 1.1rem;
+    user-select: none;
+  }
+
+  .ampm-toggle {
+    display: flex;
+    gap: 4px;
+    margin-left: 4px;
+  }
+
+  .ampm-btn {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: transparent;
+    color: #475569;
+    transition: all 0.2s ease;
+  }
+
+  .ampm-btn.active {
+    background: rgba(99,102,241,0.2);
+    border-color: rgba(99,102,241,0.4);
+    color: #818cf8;
+  }
+
+  .add-time-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(99,102,241,0.08);
+    border: 1px dashed rgba(99,102,241,0.3);
+    border-radius: 10px;
+    color: #6366f1;
+    font-size: 0.82rem;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: fit-content;
+  }
+
+  .add-time-btn:hover {
+    background: rgba(99,102,241,0.15);
+    border-color: rgba(99,102,241,0.5);
+  }
+
+  .time-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(99,102,241,0.12);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 0.82rem;
+    color: #818cf8;
+    font-weight: 600;
+  }
+
+  .time-tag-remove {
+    cursor: pointer;
+    color: #475569;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+    background: none;
+    border: none;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .time-tag-remove:hover { color: #ef4444; }
+
+  .time-tags-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* ===== REST OF STYLES ===== */
   .ntfy-input-wrap {
     position: relative;
     display: flex;
@@ -368,28 +496,92 @@ const FREQUENCIES = [
   'Every 8 hours', 'Before meals', 'After meals', 'At bedtime'
 ];
 
+const HOURS   = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+
+// ===== 12HR TIME PICKER COMPONENT =====
+function TimePickerInput({ value, onChange }) {
+  const [hour,   setHour]   = useState('08');
+  const [minute, setMinute] = useState('00');
+  const [ampm,   setAmpm]   = useState('AM');
+
+  // Parse existing times from comma-separated string
+  const times = value ? value.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+  const addTime = () => {
+    const t = `${parseInt(hour)}:${minute} ${ampm}`;
+    if (times.includes(t)) return;
+    const updated = [...times, t].join(', ');
+    onChange(updated);
+  };
+
+  const removeTime = (idx) => {
+    const updated = times.filter((_, i) => i !== idx).join(', ');
+    onChange(updated);
+  };
+
+  return (
+    <div className="time-picker-wrap">
+      {/* Picker row */}
+      <div className="time-picker-row">
+        {/* Hour */}
+        <select className="time-select" value={hour} onChange={e => setHour(e.target.value)}>
+          {HOURS.map(h => <option key={h} value={h}>{h}</option>)}
+        </select>
+
+        <span className="time-colon">:</span>
+
+        {/* Minute */}
+        <select className="time-select" value={minute} onChange={e => setMinute(e.target.value)}>
+          {MINUTES.map(m => <option key={m} value={m}>{m}</option>)}
+        </select>
+
+        {/* AM / PM */}
+        <div className="ampm-toggle">
+          <button type="button" className={`ampm-btn ${ampm === 'AM' ? 'active' : ''}`}
+            onClick={() => setAmpm('AM')}>AM</button>
+          <button type="button" className={`ampm-btn ${ampm === 'PM' ? 'active' : ''}`}
+            onClick={() => setAmpm('PM')}>PM</button>
+        </div>
+
+        {/* Add button */}
+        <button type="button" className="add-time-btn" style={{marginLeft:'auto'}}
+          onClick={addTime}>
+          + Add
+        </button>
+      </div>
+
+      {/* Added time tags */}
+      {times.length > 0 && (
+        <div className="time-tags-row">
+          {times.map((t, i) => (
+            <span key={i} className="time-tag">
+              ⏰ {t}
+              <button type="button" className="time-tag-remove" onClick={() => removeTime(i)}>✕</button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AddMedicine() {
   const [form, setForm] = useState({
-    name: '',
-    dosage: '',
-    frequency: '',
-    time: '',
-    ntfyTopic: ''
+    name: '', dosage: '', frequency: '', time: '', ntfyTopic: ''
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const handleFreqChip = function(freq) {
-    setForm(function(prev) { return { ...prev, frequency: freq }; });
-  };
+  const handleFreqChip = (freq) => setForm(prev => ({ ...prev, frequency: freq }));
 
-  const handleSubmit = async function(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.time) { alert('Please add at least one reminder time!'); return; }
     setLoading(true);
     try {
-      var times = form.time.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
-
-      var response = await fetch(BASE + '/api/medicines', {
+      const times = form.time.split(',').map(t => t.trim()).filter(Boolean);
+      const response = await fetch(BASE + '/api/medicines', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -400,12 +592,10 @@ function AddMedicine() {
           ntfyTopic: form.ntfyTopic.trim()
         })
       });
-
       if (!response.ok) throw new Error('Failed');
-
       setSuccess(true);
       setForm({ name: '', dosage: '', frequency: '', time: '', ntfyTopic: '' });
-      setTimeout(function() { setSuccess(false); }, 3500);
+      setTimeout(() => setSuccess(false), 3500);
     } catch (err) {
       alert('Error adding medicine! Please try again.');
     }
@@ -423,83 +613,60 @@ function AddMedicine() {
 
           <form className="med-form" onSubmit={handleSubmit}>
 
-            {/* Medicine Name */}
             <div className="field-wrap">
               <label className="field-label">💊 Medicine Name</label>
               <input className="field-input" type="text" placeholder="e.g. Paracetamol, Vitamin D..."
-                value={form.name} onChange={function(e) { setForm({ ...form, name: e.target.value }); }} required />
+                value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
             </div>
 
-            {/* Dosage */}
             <div className="field-wrap">
               <label className="field-label">📏 Dosage</label>
               <input className="field-input" type="text" placeholder="e.g. 500mg, 1 tablet..."
-                value={form.dosage} onChange={function(e) { setForm({ ...form, dosage: e.target.value }); }} required />
+                value={form.dosage} onChange={e => setForm({ ...form, dosage: e.target.value })} required />
             </div>
 
-            {/* Frequency */}
             <div className="field-wrap">
               <label className="field-label">📅 Frequency</label>
               <input className="field-input" type="text" placeholder="e.g. 2 times daily..."
-                value={form.frequency} onChange={function(e) { setForm({ ...form, frequency: e.target.value }); }} required />
+                value={form.frequency} onChange={e => setForm({ ...form, frequency: e.target.value })} required />
               <div className="freq-chips">
-                {FREQUENCIES.map(function(f) {
-                  return (
-                    <button key={f} type="button"
-                      className={'freq-chip ' + (form.frequency === f ? 'selected' : '')}
-                      onClick={function() { handleFreqChip(f); }}>
-                      {f}
-                    </button>
-                  );
-                })}
+                {FREQUENCIES.map(f => (
+                  <button key={f} type="button"
+                    className={`freq-chip ${form.frequency === f ? 'selected' : ''}`}
+                    onClick={() => handleFreqChip(f)}>{f}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Reminder Times */}
+            {/* 12HR TIME PICKER */}
             <div className="field-wrap">
               <label className="field-label">⏰ Reminder Times</label>
-              <input className="field-input" type="text" placeholder="e.g. 08:00, 14:00, 20:00"
-                value={form.time} onChange={function(e) { setForm({ ...form, time: e.target.value }); }} required />
-              <span className="field-hint">Separate multiple times with commas</span>
+              <TimePickerInput
+                value={form.time}
+                onChange={val => setForm({ ...form, time: val })}
+              />
+              <span className="field-hint">Select time and click Add for multiple reminders</span>
             </div>
 
-            {/* Ntfy Topic */}
             <div className="field-wrap">
               <label className="field-label">🔔 Notification Topic</label>
               <div className="ntfy-input-wrap">
                 <input className="field-input" type="text" placeholder="e.g. medremind-aman"
-                  value={form.ntfyTopic} onChange={function(e) { setForm({ ...form, ntfyTopic: e.target.value }); }}
+                  value={form.ntfyTopic} onChange={e => setForm({ ...form, ntfyTopic: e.target.value })}
                   style={{paddingRight: '145px'}} />
                 <button type="button" className="ntfy-prefix-btn"
-                  onClick={function() {
-                    if (!form.ntfyTopic.startsWith('medremind-')) {
-                      setForm({ ...form, ntfyTopic: 'medremind-' });
-                    }
-                  }}>
+                  onClick={() => { if (!form.ntfyTopic.startsWith('medremind-')) setForm({ ...form, ntfyTopic: 'medremind-' }); }}>
                   medremind- →
                 </button>
               </div>
               <span className="ntfy-hint">🔗 Get free notifications via ntfy.sh app</span>
-
-              {/* Setup Instructions */}
               <div className="ntfy-setup-box">
                 <div className="ntfy-setup-title">📲 How to setup (takes 1 min!)</div>
-                <div className="ntfy-step">
-                  <span className="ntfy-step-num">1</span>
-                  <span>Install <strong style={{color:'#818cf8'}}>Ntfy app</strong> on your phone (Android / iOS) — it's free</span>
-                </div>
-                <div className="ntfy-step">
-                  <span className="ntfy-step-num">2</span>
-                  <span>Open app → tap <strong style={{color:'#818cf8'}}>+</strong> → enter any unique topic name (e.g. <strong style={{color:'#818cf8'}}>medremind-yourname</strong>)</span>
-                </div>
-                <div className="ntfy-step">
-                  <span className="ntfy-step-num">3</span>
-                  <span>Type that same topic name in the field above</span>
-                </div>
-                <div className="ntfy-step">
-                  <span className="ntfy-step-num">4</span>
-                  <span>Done! You'll get push notifications at your reminder times 🎉</span>
-                </div>
+                <div className="ntfy-step"><span className="ntfy-step-num">1</span><span>Install <strong style={{color:'#818cf8'}}>Ntfy app</strong> on your phone (Android / iOS) — it's free</span></div>
+                <div className="ntfy-step"><span className="ntfy-step-num">2</span><span>Open app → tap <strong style={{color:'#818cf8'}}>+</strong> → enter unique topic (e.g. <strong style={{color:'#818cf8'}}>medremind-yourname</strong>)</span></div>
+                <div className="ntfy-step"><span className="ntfy-step-num">3</span><span>Type that same topic name in the field above</span></div>
+                <div className="ntfy-step"><span className="ntfy-step-num">4</span><span>Done! You'll get push notifications at reminder times 🎉</span></div>
               </div>
             </div>
 
@@ -511,7 +678,6 @@ function AddMedicine() {
           </form>
         </div>
 
-        {/* Right Side Preview */}
         <div className="add-right">
           <div className="preview-card">
             <div className="preview-label">Live Preview</div>
@@ -523,20 +689,17 @@ function AddMedicine() {
               <div className="preview-row"><strong>🔔 Topic:</strong> {form.ntfyTopic || '-'}</div>
             </div>
           </div>
-
           <div className="tips-section">
             <div className="tips-title">Pro Tips</div>
-            <div className="tip-item"><span className="tip-icon">🔔</span>Use format: medremind-yourname (e.g. medremind-aman)</div>
-            <div className="tip-item"><span className="tip-icon">📱</span>Ntfy app works on Android, iOS and PC browser too!</div>
-            <div className="tip-item"><span className="tip-icon">⏰</span>Set reminders at consistent times every day</div>
+            <div className="tip-item"><span className="tip-icon">🔔</span>Use format: medremind-yourname</div>
+            <div className="tip-item"><span className="tip-icon">📱</span>Ntfy app works on Android, iOS and PC!</div>
+            <div className="tip-item"><span className="tip-icon">⏰</span>Set reminders at consistent times daily</div>
             <div className="tip-item"><span className="tip-icon">💧</span>Always take medicines with a full glass of water</div>
           </div>
         </div>
       </div>
 
-      {success && (
-        <div className="toast">✅ Medicine added! Notification sent 🔔</div>
-      )}
+      {success && <div className="toast">✅ Medicine added! Notification sent 🔔</div>}
     </>
   );
 }
