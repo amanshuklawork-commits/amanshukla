@@ -88,7 +88,6 @@ function normalizeTime(t) {
   return t;
 }
 
-// ==================== MEDICINE STORAGE ====================
 let medicines = [];
 let nextId = 1;
 
@@ -103,7 +102,6 @@ app.post('/api/medicines', async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  // Normalize all times to 12hr on save
   const rawTimes = Array.isArray(time) ? time : [time];
   const normalizedTimes = rawTimes.map(normalizeTime);
 
@@ -145,7 +143,6 @@ app.delete('/api/medicines/:id', (req, res) => {
   res.json({ message: 'Medicine deleted' });
 });
 
-// ==================== REMINDER CHECKER ====================
 setInterval(async () => {
   const currentTime = getCurrentTime12hr();
   console.log('Checking reminders at:', currentTime, '| Total medicines:', medicines.length);

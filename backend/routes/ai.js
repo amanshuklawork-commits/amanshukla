@@ -59,11 +59,10 @@ Respond naturally in Hinglish. Keep it 3-5 sentences unless user needs detailed 
 
     const aiReply = response.data.candidates[0].content.parts[0].text;
     
-    // Save conversation history
     history.push({ role: 'user', text: message });
     history.push({ role: 'assistant', text: aiReply });
     
-    // Keep only last 10 messages to avoid token limits
+   
     if (history.length > 20) {
       history.splice(0, history.length - 20);
     }
@@ -76,7 +75,7 @@ Respond naturally in Hinglish. Keep it 3-5 sentences unless user needs detailed 
   } catch (err) {
     console.error('AI Error:', err.message);
     
-    // Handle different error types
+    
     if (err.message.includes('quota') || err.message.includes('rate')) {
       res.json({ 
         reply: '⏳ Abhi bahut zyada requests aa rahi hain. 1-2 minute baad dobara try karo! Free tier limit hit ho gayi hai.'
